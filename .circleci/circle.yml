@@ -17,8 +17,8 @@ deployment:
   development:
     branch: [ dev, dev-circleci2 ]
     commands:
-      - ./deploy/eb-deploy.sh tc-connect2sf DEV $CIRCLE_BUILD_NUM
+      - ./consumer/deploy/eb-deploy.sh tc-connect2sf DEV $CIRCLE_BUILD_NUM
   production:
     branch: master
     commands:
-      - ./deploy/eb-deploy.sh tc-connect2sf PROD $CIRCLE_BUILD_NUM
+      - ./consumer/deploy/eb-deploy.sh tc-connect2sf PROD $CIRCLE_BUILD_NUM
