@@ -255,3 +255,26 @@ For example: duplicated project id added to the queue, Lead cannot be found etc.
 In such situation, the message from rabbitmq will be marked as ACK (removed).  
 If we won't remove it from queue, the message will be stuck forever.
 For any other type of error the message from the rabbitmq will me marked as ACK as well, however, it would requeued into another queue for later inspection. It right now publishes the message content to the same rabbitmq exchange (configured as mentioned in Configuration section) with routing key being `connect2sf.failed`. So, we have to map the exchange and routing key comibation to a queue to which no consumer is listeting e.g. `tc-connect2sf.failed` is used in dev environment. Now we can see messages, via rabbitmq manager UI, in this queue to check if any of the messages failed and what was id of the project which failed. We can either remove those messages from the queue, if we are going to add those leads manually in saleforce or move them again to the original queue after fixing the deployed environment.
+
+
+## Express Rest API verification
+
+## Pre-requisites
+
+1. Postman
+
+### Steps to verify
+
+1. Open Postman
+
+2. Import Postman collection and environment from `docs` directory
+
+3. Assuming that API is served at http://localhost:3150/v5 and AUTH_SECRET used in the API is `mysecret`, requests in the Postman collection can be triggered
+
+4. Requests in Postman collection covers the status codes 200, 400 and 403
+
+### Notes
+
+1. Express Rest API will be served at http://localhost:3150/v5 if you use the values from `config/sample-local.json`.
+
+2. JWT token in the Postman collection is signed with secret `mysecret`
