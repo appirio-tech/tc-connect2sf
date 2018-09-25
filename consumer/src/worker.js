@@ -4,12 +4,17 @@
 
 import config from 'config';
 import amqp from 'amqplib';
+import express from 'express';
+import cors from 'cors';
+import cron from 'node-cron';
+import bodyParser from 'body-parser';
 import _ from 'lodash';
+import { middleware } from 'tc-core-library-js';
 import logger from './common/logger';
 import ConsumerService from './services/ConsumerService';
-import { EVENT } from '../config/constants';
-import cron from 'node-cron';
-import { start as scheduleStart } from './scheduled-worker'
+import LeadService from './services/LeadService';
+import { EVENT, ERROR } from '../config/constants';
+import { start as scheduleStart } from './scheduled-worker';
 
 const debug = require('debug')('app:worker');
 
@@ -24,8 +29,8 @@ process.once('SIGINT', () => {
 
 let EVENT_HANDLERS = {
   [EVENT.ROUTING_KEY.PROJECT_DRAFT_CREATED]: ConsumerService.processProjectCreated,
-  [EVENT.ROUTING_KEY.PROJECT_UPDATED]: ConsumerService.processProjectUpdated
-}
+  [EVENT.ROUTING_KEY.PROJECT_UPDATED]: ConsumerService.processProjectUpdated,
+};
 
 export function initHandlers(handlers) {
   EVENT_HANDLERS = handlers;
@@ -59,7 +64,7 @@ export async function consume(channel, exchangeName, queue, publishChannel) {
         handler = EVENT_HANDLERS[key];
         if (!_.isFunction(handler)) {
           logger.error(`Unknown message type: ${key}, NACKing... `);
-          channel.nack(msg, false, false)
+          channel.nack(msg, false, false);
         }
         data = JSON.parse(msg.content.toString());
       } catch (ignore) {
@@ -88,7 +93,7 @@ export async function consume(channel, exchangeName, queue, publishChannel) {
               key,
               new Buffer(msg.content.toString())
             );
-          } catch(e) {
+          } catch (e) {
             // TODO decide if we want nack the original msg here
             // for now just ignoring the error in requeue
             logger.logFullError(e, `Error in publising Exchange to ${exchangeName}`);
@@ -102,11 +107,11 @@ export async function consume(channel, exchangeName, queue, publishChannel) {
 /**
  * Start the worker
  */
-async function start() {
+async function startWorker() {
   try {
-    console.log("Worker Connecting to RabbitMQ: " + config.rabbitmqURL.substr(-5));
+    console.log(`Worker Connecting to RabbitMQ: ${config.rabbitmqURL.substr(-5)}`);
     connection = await amqp.connect(config.rabbitmqURL);
-    debug('created connection successfully with URL: ' + config.rabbitmqURL);
+    debug(`created connection successfully with URL: ${config.rabbitmqURL}`);
     const channel = await connection.createConfirmChannel();
     debug('Channel created for projects exchange ...');
     const publishChannel = await connection.createConfirmChannel();
@@ -122,10 +127,61 @@ async function start() {
   }
 }
 
+/*
+ * Error handler for Async functions
+ */
+const asyncHandler = fn => (req, res, next) => {
+  Promise
+    .resolve(fn(req, res, next))
+    .catch(next);
+};
+
 if (!module.parent) {
-  start();
- 
-  cron.schedule(config.scheduledWorkerSchedule, function(){
+  startWorker();
+
+  if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = 'development';
+  }
+
+  const app = express();
+
+  app.use(cors());
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({
+    extended: true,
+  }));
+
+  app.use((req, res, next) => {
+    middleware.jwtAuthenticator({
+      AUTH_SECRET: config.authSecret,
+      VALID_ISSUERS: config.validIssuers,
+    })(req, res, next);
+  });
+
+  app.post(`${config.apiVersion}/connect2sf/leadInfo`, asyncHandler(async (req, res, next) => {
+    const result = await LeadService.postLead(req.body);
+    res.json(result);
+  }));
+
+  // Error handler
+  app.use(async (err, req, res, next) => {
+    let status = ERROR.SERVER_ERROR;
+    let message = err.message;
+    // Fetch actual error message from details for JOI errors
+    if (err.isJoi) {
+      status = ERROR.CLIENT_ERROR;
+      message = err.details[0].message;
+    }
+    if (!message) {
+      message = ERROR.MESSAGE;
+    }
+    res.status(status).send({ message });
+  });
+
+  app.listen(config.port);
+  debug(`Express server listening on port ${config.port} in ${process.env.NODE_ENV} mode`);
+
+  cron.schedule(config.scheduledWorkerSchedule, () => {
     scheduleStart();
   });
 }
