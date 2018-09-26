@@ -1,0 +1,76 @@
+version: 2
+
+# Node image for node project
+node_env: &node_env
+  docker:
+    - image: circleci/node:6.14.3-stretch-browsers
+
+# Python image to run aws utilities
+python_env: &python_env
+  docker:
+    - image: circleci/python:2.7-stretch-browsers
+
+# Instructions of installing aws utilities
+install_awscli: &install_awscli
+  name: "Install awscli"
+  command: |
+    sudo pip install awscli awsebcli --upgrade
+    aws --version
+    eb --version
+
+# Instructions of deployment
+deploy_steps: &deploy_steps
+  - checkout
+  - attach_workspace:
+      at: .
+  - run: *install_awscli
+  - setup_remote_docker
+  - run: cd consumer && ./deploy/eb-deploy.sh tc-connect2sf DEV $CIRCLE_BUILD_NUM
+
+jobs:
+  build:
+    <<: *node_env
+    steps:
+      - checkout
+      - restore_cache:
+          key: node-modules-{{ checksum "consumer/package.json" }}
+      - run: cd consumer && npm install
+      - save_cache:
+          key: node-modules-{{ checksum "consumer/package.json" }}
+          paths: 
+            - consumer/node_modules
+      - run: cd consumer && npm run test
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./consumer/node_modules
+
+  deploy_prod:
+    <<: *python_env
+    environment:
+      DEPLOY_ENV: "PROD"
+    steps: *deploy_steps
+
+  deploy_dev:
+    <<: *python_env
+    environment:
+      DEPLOY_ENV: "DEV"
+    steps: *deploy_steps
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy_dev:
+          filters:
+            branches:
+              only: [ dev, dev-circleci2 ]
+          requires:
+            - build
+      - deploy_prod:
+          filters:
+            branches:
+              only: master
+          requires:
+            - build
