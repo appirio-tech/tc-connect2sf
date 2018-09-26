@@ -3,7 +3,10 @@
  */
 
 import Joi from 'joi';
+import config from 'config';
 import {logAndValidate} from '../common/decorators';
+import ConfigurationService from './ConfigurationService';
+import SalesforceService from './SalesforceService';
 
 const postLeadSchema = Joi.object().keys({
   reqBody: Joi.object().keys({
@@ -17,6 +20,8 @@ const postLeadSchema = Joi.object().keys({
   }),
 }).required();
 
+const leadSource = 'Connect';
+
 class LeadService {
 
   /**
@@ -25,9 +30,40 @@ class LeadService {
    * @returns {Object} sample response
    */
   @logAndValidate(['reqBody'], postLeadSchema)
-  postLead(reqBody) { // eslint-disable-line no-unused-vars
-    // TODO -- Replace with actual functions later
-    return {success: true};
+  postLead(user) { // eslint-disable-line no-unused-vars
+    let leadId = 0;
+    return Promise.all([
+      ConfigurationService.getSalesforceCampaignId(),
+      SalesforceService.authenticate(),
+    ]).then((responses) => {
+      const campaignId = responses[0];
+      const { accessToken, instanceUrl } = responses[1];
+      const lead = {
+        FirstName: user.firstName,
+        LastName: user.lastName,
+        Email: user.businessEmail,
+        LeadSource: leadSource,
+        Company: user.companyName,
+        No_of_Employees__c: user.companySize,
+        OwnerId: config.ownerId,
+        TC_Handle__c: user.userName,
+      };
+      return SalesforceService.createObject('Lead', lead, accessToken, instanceUrl)
+      .then((_leadId) => {
+        leadId = _leadId;
+        const campaignMember = {
+          LeadId: _leadId,
+          CampaignId: campaignId,
+        };
+        return SalesforceService.createObject('CampaignMember', campaignMember, accessToken, instanceUrl);
+      }).catch( (e) => {
+        throw e;
+      })
+    }).then(() => {
+      return {success: true, leadId };
+    }).catch((error) => {
+      throw error;
+    });
   }
 
 }
