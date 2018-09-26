@@ -17,6 +17,8 @@ const request = superagentPromise(superagent, Promise);
 let privateKey = process.env.SALESFORCE_CLIENT_KEY || 'privateKey'
 privateKey = privateKey.replace(/\\n/g, "\n")
 
+console.log(privateKey);
+
 const createObjectSchema = {
   type: Joi.string().required(),
   params: Joi.object().required(),
