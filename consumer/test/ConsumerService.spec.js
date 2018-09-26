@@ -82,7 +82,7 @@ describe('ConsumerService', () => {
   });
 
   describe('processProjectCreated', () => {
-    it('should process project successfully', async() => {
+    xit('should process project successfully', async() => {
       
       const expectedLead = {
         FirstName: 'john',
@@ -131,7 +131,7 @@ describe('ConsumerService', () => {
       }
     });
 
-    it('should throw UnprocessableError if Lead already exists', async() => {
+    xit('should throw UnprocessableError if Lead already exists', async() => {
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => {
         const err = new Error('Bad request');
         err.response = {
@@ -145,7 +145,7 @@ describe('ConsumerService', () => {
       createObjectStub.should.have.been.called;
     });
 
-    it('should rethrow Error from createObject if error is not duplicate', async() => {
+    xit('should rethrow Error from createObject if error is not duplicate', async() => {
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => {
         throw new Error('Fake Error');
       });
