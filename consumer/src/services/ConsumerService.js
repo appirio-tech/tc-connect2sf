@@ -125,6 +125,7 @@ class ConsumerService {
         }
       })
     }).catch((error) => {
+      error.shouldAck = true; // ignore bad requests, most probably it is because of malformed data
       throw error;
     });
   }
@@ -171,7 +172,12 @@ class ConsumerService {
           // }
           // return SalesforceService.deleteObject('CampaignMember', member.Id, accessToken, instanceUrl);
         // })
-      })
+      }).catch((error) => {
+        if (error.status === 400) {
+          error.shouldAck = true; // ignore bad requests, most probably it is because of malformed data
+          return Promise.reject(error);
+        }
+      });
     });
   }
 }
