@@ -158,7 +158,7 @@ if (!module.parent) {
     })(req, res, next);
   });
 
-  app.post(`${config.apiVersion}/connect2sf/leadInfo`, asyncHandler(async (req, res, next) => {
+  app.post(`/${config.apiVersion}/connect2sf/leadInfo`, asyncHandler(async (req, res, next) => {
     const result = await LeadService.postLead(req.body);
     res.json(result);
   }));
