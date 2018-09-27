@@ -26,11 +26,12 @@ class LeadService {
 
   /**
    * Post the lead info to Salesforce
-   * @param {Object} reqBody Request body
+   * @param {Object} user Request body
    * @returns {Object} sample response
    */
-  @logAndValidate(['reqBody'], postLeadSchema)
+  @logAndValidate(['user'], postLeadSchema)
   postLead(user) { // eslint-disable-line no-unused-vars
+    console.log(user, 'user');
     let leadId = 0;
     return Promise.all([
       ConfigurationService.getSalesforceCampaignId(),
