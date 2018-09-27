@@ -9,7 +9,7 @@ import ConfigurationService from './ConfigurationService';
 import SalesforceService from './SalesforceService';
 
 const postLeadSchema = Joi.object().keys({
-  reqBody: Joi.object().keys({
+  user: Joi.object().keys({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     businessEmail: Joi.string().email().required(),
