@@ -98,7 +98,7 @@ class ConsumerService {
         TC_Connect_Cancel_Reason__c: _.get(project,"cancelReason",""),
         TC_Connect_Raw_Project__c: JSON.stringify(project),
       };
-      let sql = `SELECT id,IsConverted FROM Lead WHERE Email = '${project.id}' AND LeadSource = 'Connect'`;
+      let sql = `SELECT id,IsConverted FROM Lead WHERE Email = '${user.email}' AND LeadSource = 'Connect'`;
       return SalesforceService.query(sql, accessToken, instanceUrl)
       .then((response) => {
         const {records: [lead]} = response;
