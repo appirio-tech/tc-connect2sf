@@ -25,7 +25,7 @@ deploy_steps: &deploy_steps
       at: .
   - run: *install_awscli
   - setup_remote_docker
-  - run: cd consumer && ./deploy/eb-deploy.sh tc-connect2sf DEV $CIRCLE_BUILD_NUM
+  - run: cd consumer && ./deploy/eb-deploy.sh tc-connect2sf $DEPLOY_ENV $CIRCLE_BUILD_NUM
 
 jobs:
   build:
