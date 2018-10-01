@@ -7,3 +7,9 @@ export const EVENT = {
     FAILED_SUFFIX: '.failed'
   },
 };
+
+export const ERROR = {
+  SERVER_ERROR: 500,
+  CLIENT_ERROR: 400,
+  MESSAGE: 'Internal Server Error'
+};

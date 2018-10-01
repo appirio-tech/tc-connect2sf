@@ -83,7 +83,7 @@ class ConsumerService {
       const campaignId = responses[0];
       const user = responses[1];
       const { accessToken, instanceUrl } = responses[2];
-      const lead = {
+      const leadData = {
         FirstName: user.firstName,
         LastName: user.lastName,
         Email: user.email,
@@ -98,20 +98,36 @@ class ConsumerService {
         TC_Connect_Cancel_Reason__c: _.get(project,"cancelReason",""),
         TC_Connect_Raw_Project__c: JSON.stringify(project),
       };
-      return SalesforceService.createObject('Lead', lead, accessToken, instanceUrl)
-      .then((leadId) => {
-        const campaignMember = {
-          LeadId: leadId,
-          CampaignId: campaignId,
-        };
-        return SalesforceService.createObject('CampaignMember', campaignMember, accessToken, instanceUrl);
-      }).catch( (e) => {
-        if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
-          throw new UnprocessableError(`Lead already existing for project ${project.id}`);
+      let sql = `SELECT id,IsConverted FROM Lead WHERE Email = '${user.email}' AND LeadSource = 'Connect'`;
+      return SalesforceService.query(sql, accessToken, instanceUrl)
+      .then((response) => {
+        const {records: [lead]} = response;
+        if (!lead) {
+          // if lead does not exists, create new one
+          return SalesforceService.createObject('Lead', leadData, accessToken, instanceUrl)
+          .then((leadId) => {
+            const campaignMember = {
+              LeadId: leadId,
+              CampaignId: campaignId,
+            };
+            return SalesforceService.createObject('CampaignMember', campaignMember, accessToken, instanceUrl);
+          }).catch( (e) => {
+            if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
+              throw new UnprocessableError(`Lead already existing for project ${project.id}`);
+            }
+            throw e;
+          })
+        } else {
+          // if lead does exists update it with project data
+          if (lead.IsConverted != true && !_.isEmpty(leadData)) {
+            return SalesforceService.updateObject(lead.Id, 'Lead', leadData, accessToken, instanceUrl);
+          }
         }
-        throw e;
       })
     }).catch((error) => {
+      if (error.status === 400) {
+        error.shouldAck = true; // ignore bad requests, most probably it is because of malformed data
+      }
       throw error;
     });
   }
@@ -126,7 +142,6 @@ class ConsumerService {
     logger.debug(projectEvent)
     var project = projectEvent.original;
     var projectUpdated = projectEvent.updated;
-
 
     return Promise.all([
       ConfigurationService.getSalesforceCampaignId(),
@@ -159,7 +174,12 @@ class ConsumerService {
           // }
           // return SalesforceService.deleteObject('CampaignMember', member.Id, accessToken, instanceUrl);
         // })
-      })
+      }).catch((error) => {
+        if (error.status === 400) {
+          error.shouldAck = true; // ignore bad requests, most probably it is because of malformed data
+        }
+        throw error;
+      });
     });
   }
 }

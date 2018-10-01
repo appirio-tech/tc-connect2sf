@@ -2,6 +2,7 @@
   "logLevel": "error",
   "rabbitmqURL": "****UPDATE****",
   "ownerId": "****UPDATE****",
+  "scheduledWorkerSchedule": "* * * 1 * *",
   "aws": {
     "endpoint": "http://dockerhost:7777",
     "region": "us-east-1",
@@ -23,5 +24,9 @@
     "queues": {
       "project": "dev.project.service"
     }
-  }
+  },
+  "apiVersion": "/v5",
+  "port": 3150,
+  "authSecret": "mysecret",
+  "validIssuers": "[\"https://api.topcoder.com\",\"https://topcoder-dev.auth0.com\", \"https://topcoder-newauth.auth0.com\"]"
 }

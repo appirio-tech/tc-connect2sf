@@ -27,5 +27,9 @@
       "project": "QUEUE_PROJECTS",
       "connect2sf": "QUEUE_CONNECT2SF"
     }
-  }
+  },
+  "apiVersion": "API_VERSION",
+  "port": "PORT",
+  "authSecret": "AUTH_SECRET",
+  "validIssuers": "VALID_ISSUERS"
 }
