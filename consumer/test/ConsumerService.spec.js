@@ -127,7 +127,8 @@ describe('ConsumerService', () => {
         LastName: 'doe',
         Email: 'jd@example.com',
         LeadSource: 'Connect',
-        Company: 'Unknown',
+        // should not update the Company when the lead already exists
+        // Company: 'Unknown',
         OwnerId: config.ownerId,
         TC_Handle__c: 'jdoe',
         TC_Connect_Project_Id__c: 1,
