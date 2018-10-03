@@ -10,7 +10,7 @@ import SalesforceService from './SalesforceService';
 
 const postLeadSchema = Joi.object().keys({
   user: Joi.object().keys({
-    firstName: Joi.string().required(),
+    firstName: Joi.string().optional(),
     lastName: Joi.string().required(),
     businessEmail: Joi.string().email().required(),
     businessPhone: Joi.string().optional(),
