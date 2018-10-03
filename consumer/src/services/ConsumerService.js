@@ -118,6 +118,8 @@ class ConsumerService {
             throw e;
           })
         } else {
+          // don't update the company of the lead if it is updating existing lead
+          delete leadData.Company;
           // if lead does exists update it with project data
           if (lead.IsConverted != true && !_.isEmpty(leadData)) {
             return SalesforceService.updateObject(lead.Id, 'Lead', leadData, accessToken, instanceUrl);
