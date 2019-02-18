@@ -41,6 +41,7 @@ class LeadService {
       const campaignId = responses[0];
       const { accessToken, instanceUrl } = responses[1];
       const lead = {
+        Title: user.title,
         FirstName: user.firstName,
         LastName: user.lastName,
         Email: user.businessEmail,
