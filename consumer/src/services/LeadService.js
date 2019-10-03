@@ -18,6 +18,7 @@ const postLeadSchema = Joi.object().keys({
     companyName: Joi.string().required(),
     companySize: Joi.string().required(),
     userName: Joi.string().required(),
+    optOutMarketingEmails: Joi.bool().required(),
   }),
 }).required();
 
@@ -51,6 +52,7 @@ class LeadService {
         No_of_Employees__c: user.companySize,
         OwnerId: config.ownerId,
         TC_Handle__c: user.userName,
+        HasOptedOutOfEmail: user.optOutMarketingEmails,
       };
       return SalesforceService.createObject('Lead', lead, accessToken, instanceUrl)
       .then((_leadId) => {
