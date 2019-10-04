@@ -18,7 +18,7 @@ const postLeadSchema = Joi.object().keys({
     companyName: Joi.string().required(),
     companySize: Joi.string().optional(),
     userName: Joi.string().required(),
-    optOutMarketingEmails: Joi.bool().required(),
+    optOutMarketingEmails: Joi.bool().optional(),
   }),
 }).required();
 
