@@ -48,7 +48,7 @@
     "joi": "^9.0.4",
     "jsonwebtoken": "^7.1.7",
     "lodash": "^4.14.2",
-    "superagent": "^2.1.0",
+    "superagent": "^5.1.0",
     "superagent-promise": "^1.1.0",
     "winston": "^2.2.0"
   },
