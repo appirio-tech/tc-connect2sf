@@ -122,12 +122,12 @@ class ConsumerService {
 
       const leadData = {
         Type__c: 'connect.project.updated',
-        Json__c: JSON.stringify(project),
+        Json__c: JSON.stringify(projectEvent),
       };
       return SalesforceService.createObject('Connect_Event__c', leadData, accessToken, instanceUrl)
       .catch( (e) => {
         if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
-          throw new UnprocessableError(`Record existing for project ${project.id}`);
+          throw new UnprocessableError(`Record existing for project ${projectUpdated.id}`);
         }
         throw e;
       });      

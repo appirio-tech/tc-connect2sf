@@ -83,30 +83,18 @@ describe('ConsumerService', () => {
 
   describe('processProjectCreated', () => {
     it('should process project successfully', async() => {
-      // const leadSql = `SELECT id,IsConverted FROM Lead WHERE Email = 'jd@example.com' AND LeadSource = 'Connect'`;
       const expectedLead = {
         Type__c: 'connect.project.created',
         Json__c: JSON.stringify(project)
       };
 
-      // const expectedCampaignMember = {
-      //   LeadId: leadId,
-      //   CampaignId: sfCampaignId,
-      // };
-
-      // const queryStub = sandbox.stub(SalesforceService, 'query');
-      // queryStub.onCall(0)
-      //   .returns(Promise.resolve({ records: [] }));
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
 
       await ConsumerService.processProjectCreated(logger, project);
       getCampaignIdStub.should.have.been.called;
       getUserStub.should.have.been.calledWith(userId);
       authenticateStub.should.have.been.called;
-      // queryStub.should.have.been.calledWith(leadSql, sfAuth.accessToken, sfAuth.instanceUrl);
       createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
-      // createObjectStub.should.have.been.calledWith('CampaignMember', expectedCampaignMember, sfAuth.accessToken,
-        // sfAuth.instanceUrl);
     });
 
     it('should throw UnprocessableError primary customer is not found', async() => {
@@ -122,21 +110,6 @@ describe('ConsumerService', () => {
           .and.be.instanceof(UnprocessableError)
           .and.have.property('message').and.match(/Cannot find primary customer/);
       }
-    });
-
-    // Not a valid use case any more, we now allow updation of existing lead in project creation event as well
-    xit('should throw UnprocessableError if Lead already exists', async() => {
-      const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => {
-        const err = new Error('Bad request');
-        err.response = {
-          text: '[{"message":"duplicate value found: TC_Connect_Project_Id__c duplicates value on' +
-          ' record with id: 00Q58000003tW4u","errorCode":"DUPLICATE_VALUE","fields":[]}]',
-        };
-        throw err;
-      });
-      return expect(ConsumerService.processProjectCreated(logger,project))
-        .to.be.rejectedWith(UnprocessableError, /Lead already existing for project 1/);
-      createObjectStub.should.have.been.called;
     });
 
     it('should rethrow Error from createObject if error is not duplicate', async() => {
@@ -155,47 +128,14 @@ describe('ConsumerService', () => {
   describe('processProjectUpdated', () => {
     it('should process project successfully', async() => {
       const memberId = 'member-id';
-      const leadSql = `SELECT id,IsConverted FROM Lead WHERE TC_Connect_Project_Id__c = '${project.id}'`;
-      // const memberSql = `SELECT id FROM CampaignMember WHERE LeadId = '${leadId}' AND CampaignId ='${sfCampaignId}'`;
-
-      const queryStub = sandbox.stub(SalesforceService, 'query');
-
-
-      queryStub.onCall(0)
-        .returns(Promise.resolve({ records: [{ Id: leadId }] }));
-      // queryStub.onCall(1)
-      // .returns(Promise.resolve({ records: [{ Id: memberId }] }));
-      // const deleteObjectStub = sandbox.stub(SalesforceService, 'deleteObject');
-
-      const updateStub = sandbox.stub(SalesforceService,'updateObject', async() => {});
-
+      const expectedLead = {
+        Type__c: 'connect.project.updated',
+        Json__c: JSON.stringify(projectUpdatePaylod)
+      };
+      const createObjectStub = sandbox.stub(SalesforceService,'createObject', async() => {});
 
       await ConsumerService.processProjectUpdated(logger, projectUpdatePaylod);
-      queryStub.should.have.been.calledWith(leadSql, sfAuth.accessToken, sfAuth.instanceUrl);
-      // queryStub.should.have.been.calledWith(memberSql, sfAuth.accessToken, sfAuth.instanceUrl);
-      // deleteObjectStub.should.have.been.calledWith('CampaignMember', memberId, sfAuth.accessToken,
-      // sfAuth.instanceUrl);
-    });
-
-    it('should throw UnprocessableError if Lead cannot be found', async() => {
-      const queryStub = sandbox.stub(SalesforceService, 'query');
-      queryStub.onCall(0)
-        .returns(Promise.resolve({ records: [] }));
-      await expect(ConsumerService.processProjectUpdated(logger, projectUpdatePaylod))
-        .to.be.rejectedWith(UnprocessableError, /Cannot find Lead with TC_Connect_Project_Id__c = '1'/);
-      queryStub.should.have.been.called;
-    });
-
-    // Not a valid use case any more
-    xit('should throw UnprocessableError if CampaignMember cannot be found', async() => {
-      const queryStub = sandbox.stub(SalesforceService, 'query');
-      queryStub.onCall(0)
-        .returns(Promise.resolve({ records: [{ Id: leadId }] }));
-      queryStub.onCall(1)
-        .returns(Promise.resolve({ records: [] }));
-      await expect(ConsumerService.processProjectUpdated(logger, projectUpdatePaylod))
-        .to.be.rejectedWith(UnprocessableError, /Cannot find CampaignMember for Lead.TC_Connect_Project_Id__c = '1'/);
-      queryStub.should.have.been.called;
+      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
   });
 });
