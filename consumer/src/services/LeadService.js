@@ -22,7 +22,7 @@ const postLeadSchema = Joi.object().keys({
   }),
 }).required();
 
-const leadSource = 'Connect';
+// const leadSource = 'Connect';
 
 class LeadService {
 
@@ -39,30 +39,14 @@ class LeadService {
       ConfigurationService.getSalesforceCampaignId(),
       SalesforceService.authenticate(),
     ]).then((responses) => {
-      const campaignId = responses[0];
+      // const campaignId = responses[0];
       const { accessToken, instanceUrl } = responses[1];
       const lead = {
-        Title: user.title,
-        FirstName: user.firstName,
-        LastName: user.lastName,
-        Email: user.businessEmail,
-        Phone: user.businessPhone ? user.businessPhone : '',
-        LeadSource: leadSource,
-        Company: user.companyName,
-        No_of_Employees__c: user.companySize,
-        OwnerId: config.ownerId,
-        TC_Handle__c: user.userName,
-        HasOptedOutOfEmail: user.optOutMarketingEmails,
+        Type__c: 'connect.user.registered',
+        Json__c: user
       };
-      return SalesforceService.createObject('Lead', lead, accessToken, instanceUrl)
-      .then((_leadId) => {
-        leadId = _leadId;
-        const campaignMember = {
-          LeadId: _leadId,
-          CampaignId: campaignId,
-        };
-        return SalesforceService.createObject('CampaignMember', campaignMember, accessToken, instanceUrl);
-      }).catch( (e) => {
+      return SalesforceService.createObject('Connect_Event__c', lead, accessToken, instanceUrl)
+      .catch( (e) => {
         throw e;
       })
     }).then(() => {

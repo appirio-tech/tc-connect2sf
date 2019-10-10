@@ -80,52 +80,20 @@ class ConsumerService {
       IdentityService.getUser(member.userId),
       SalesforceService.authenticate(),
     ]).then((responses) => {
-      const campaignId = responses[0];
-      const user = responses[1];
+      // const campaignId = responses[0];
+      // const user = responses[1];
       const { accessToken, instanceUrl } = responses[2];
       const leadData = {
-        FirstName: user.firstName,
-        LastName: user.lastName,
-        Email: user.email,
-        LeadSource: leadSource,
-        Company: company,
-        OwnerId: config.ownerId,
-        TC_Handle__c: user.handle,
-        TC_Connect_Project_Id__c: project.id,
-        TC_Connect_Description__c: _.get(project,"description",""),
-        TC_Connect_Project_Status__c: _.get(project,"status",""),
-        TC_Connect_Direct_Project_Id__c: _.get(project, "directProjectId",""),
-        TC_Connect_Cancel_Reason__c: _.get(project,"cancelReason",""),
-        TC_Connect_Raw_Project__c: JSON.stringify(project),
+        Type__c: 'connect.project.created',
+        Json__c: JSON.stringify(project),
       };
-      let sql = `SELECT id,IsConverted FROM Lead WHERE Email = '${user.email}' AND LeadSource = 'Connect'`;
-      return SalesforceService.query(sql, accessToken, instanceUrl)
-      .then((response) => {
-        const {records: [lead]} = response;
-        if (!lead) {
-          // if lead does not exists, create new one
-          return SalesforceService.createObject('Lead', leadData, accessToken, instanceUrl)
-          .then((leadId) => {
-            const campaignMember = {
-              LeadId: leadId,
-              CampaignId: campaignId,
-            };
-            return SalesforceService.createObject('CampaignMember', campaignMember, accessToken, instanceUrl);
-          }).catch( (e) => {
-            if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
-              throw new UnprocessableError(`Lead already existing for project ${project.id}`);
-            }
-            throw e;
-          })
-        } else {
-          // don't update the company of the lead if it is updating existing lead
-          delete leadData.Company;
-          // if lead does exists update it with project data
-          if (lead.IsConverted != true && !_.isEmpty(leadData)) {
-            return SalesforceService.updateObject(lead.Id, 'Lead', leadData, accessToken, instanceUrl);
-          }
+      return SalesforceService.createObject('Connect_Event__c', leadData, accessToken, instanceUrl)
+      .catch( (e) => {
+        if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
+          throw new UnprocessableError(`Record existing for project ${project.id}`);
         }
-      })
+        throw e;
+      });
     }).catch((error) => {
       if (error.status === 400) {
         error.shouldAck = true; // ignore bad requests, most probably it is because of malformed data
@@ -152,36 +120,17 @@ class ConsumerService {
       const campaignId = responses[0];
       const { accessToken, instanceUrl } = responses[1];
 
-      // queries existing lead for the project
-      let sql = `SELECT id,IsConverted FROM Lead WHERE TC_Connect_Project_Id__c = '${project.id}'`;
-      return SalesforceService.query(sql, accessToken, instanceUrl)
-      .then((response) => {
-        const {records: [lead]} = response;
-        if (!lead) {
-           throw new UnprocessableError(`Cannot find Lead with TC_Connect_Project_Id__c = '${project.id}'`);
+      const leadData = {
+        Type__c: 'connect.project.updated',
+        Json__c: JSON.stringify(project),
+      };
+      return SalesforceService.createObject('Connect_Event__c', leadData, accessToken, instanceUrl)
+      .catch( (e) => {
+        if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
+          throw new UnprocessableError(`Record existing for project ${project.id}`);
         }
-        
-        const leadUpdate = getUpdatedLeadFieldData(projectUpdated);
-
-        if (lead.IsConverted != true && !_.isEmpty(leadUpdate)) {
-          return SalesforceService.updateObject(lead.Id, 'Lead', leadUpdate, accessToken, instanceUrl);
-        }
-
-        // sql = `SELECT id FROM CampaignMember WHERE LeadId = '${lead.Id}' AND CampaignId ='${campaignId}'`;
-        // return SalesforceService.query(sql, accessToken, instanceUrl)
-        // .then((response) => {
-          // const {records: [member]} = response;
-          // if (!member) {
-          //  throw new UnprocessableError(`Cannot find CampaignMember for Lead.TC_Connect_Project_Id__c = '${project.id}'`);
-          // }
-          // return SalesforceService.deleteObject('CampaignMember', member.Id, accessToken, instanceUrl);
-        // })
-      }).catch((error) => {
-        if (error.status === 400) {
-          error.shouldAck = true; // ignore bad requests, most probably it is because of malformed data
-        }
-        throw error;
-      });
+        throw e;
+      });      
     });
   }
 }
