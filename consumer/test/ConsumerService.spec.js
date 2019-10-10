@@ -2,7 +2,7 @@
  * Unit tests for ConsumerService
  */
 
-import config from 'config';
+import _ from 'lodash';
 import ConsumerService from '../src/services/ConsumerService';
 import ConfigurationService from '../src/services/ConfigurationService';
 import SalesforceService from '../src/services/SalesforceService';
@@ -128,9 +128,10 @@ describe('ConsumerService', () => {
   describe('processProjectUpdated', () => {
     it('should process project successfully', async() => {
       const memberId = 'member-id';
+      const mergedProject = _.assign({}, projectUpdatePaylod.original, projectUpdatePaylod.updated);
       const expectedLead = {
         Type__c: 'connect.project.updated',
-        Json__c: JSON.stringify(projectUpdatePaylod)
+        Json__c: JSON.stringify({ ...projectUpdatePaylod, mergedProject })
       };
       const createObjectStub = sandbox.stub(SalesforceService,'createObject', async() => {});
 

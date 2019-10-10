@@ -112,6 +112,7 @@ class ConsumerService {
     logger.debug(projectEvent)
     var project = projectEvent.original;
     var projectUpdated = projectEvent.updated;
+    projectEvent.mergedProject = _.assign({}, project, projectUpdated);
 
     return Promise.all([
       ConfigurationService.getSalesforceCampaignId(),
