@@ -128,10 +128,9 @@ describe('ConsumerService', () => {
   describe('processProjectUpdated', () => {
     it('should process project successfully', async() => {
       const memberId = 'member-id';
-      const mergedProject = _.assign({}, projectUpdatePaylod.original, projectUpdatePaylod.updated);
       const expectedLead = {
         Type__c: 'connect.project.updated',
-        Json__c: JSON.stringify({ ...projectUpdatePaylod, mergedProject })
+        Json__c: JSON.stringify(projectUpdatePaylod)
       };
       const createObjectStub = sandbox.stub(SalesforceService,'createObject', async() => {});
 

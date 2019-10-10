@@ -110,9 +110,10 @@ class ConsumerService {
   @logAndValidate(['logger', 'projectEvent'], projectUpdatedSchema)
   processProjectUpdated(logger, projectEvent) {
     logger.debug(projectEvent)
+    delete projectEvent.original.template;
+    delete projectEvent.updated.template;
     var project = projectEvent.original;
     var projectUpdated = projectEvent.updated;
-    projectEvent.mergedProject = _.assign({}, project, projectUpdated);
 
     return Promise.all([
       ConfigurationService.getSalesforceCampaignId(),
