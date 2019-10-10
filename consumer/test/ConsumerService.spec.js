@@ -82,81 +82,31 @@ describe('ConsumerService', () => {
   });
 
   describe('processProjectCreated', () => {
-    it('should process project successfully when lead does not exists', async() => {
-      const leadSql = `SELECT id,IsConverted FROM Lead WHERE Email = 'jd@example.com' AND LeadSource = 'Connect'`;
+    it('should process project successfully', async() => {
+      // const leadSql = `SELECT id,IsConverted FROM Lead WHERE Email = 'jd@example.com' AND LeadSource = 'Connect'`;
       const expectedLead = {
-        FirstName: 'john',
-        LastName: 'doe',
-        Email: 'jd@example.com',
-        LeadSource: 'Connect',
-        Company: 'Unknown',
-        OwnerId: config.ownerId,
-        TC_Handle__c: 'jdoe',
-        TC_Connect_Project_Id__c: 1,
-        TC_Connect_Project_Status__c: '',
-        TC_Connect_Cancel_Reason__c: null,
-        TC_Connect_Direct_Project_Id__c: '',
-        TC_Connect_Description__c:'',
-        TC_Connect_Raw_Project__c: JSON.stringify(project)
+        Type__c: 'connect.project.created',
+        Json__c: JSON.stringify(project)
       };
 
-      const expectedCampaignMember = {
-        LeadId: leadId,
-        CampaignId: sfCampaignId,
-      };
+      // const expectedCampaignMember = {
+      //   LeadId: leadId,
+      //   CampaignId: sfCampaignId,
+      // };
 
-      const queryStub = sandbox.stub(SalesforceService, 'query');
-      queryStub.onCall(0)
-        .returns(Promise.resolve({ records: [] }));
+      // const queryStub = sandbox.stub(SalesforceService, 'query');
+      // queryStub.onCall(0)
+      //   .returns(Promise.resolve({ records: [] }));
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
 
       await ConsumerService.processProjectCreated(logger, project);
       getCampaignIdStub.should.have.been.called;
       getUserStub.should.have.been.calledWith(userId);
       authenticateStub.should.have.been.called;
-      queryStub.should.have.been.calledWith(leadSql, sfAuth.accessToken, sfAuth.instanceUrl);
-      createObjectStub.should.have.been.calledWith('Lead', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
-      createObjectStub.should.have.been.calledWith('CampaignMember', expectedCampaignMember, sfAuth.accessToken,
-        sfAuth.instanceUrl);
-    });
-
-    it('should process project successfully when lead does exists', async() => {
-      const leadSql = `SELECT id,IsConverted FROM Lead WHERE Email = 'jd@example.com' AND LeadSource = 'Connect'`;
-      const expectedLead = {
-        FirstName: 'john',
-        LastName: 'doe',
-        Email: 'jd@example.com',
-        LeadSource: 'Connect',
-        // should not update the Company when the lead already exists
-        // Company: 'Unknown',
-        OwnerId: config.ownerId,
-        TC_Handle__c: 'jdoe',
-        TC_Connect_Project_Id__c: 1,
-        TC_Connect_Project_Status__c: '',
-        TC_Connect_Cancel_Reason__c: null,
-        TC_Connect_Direct_Project_Id__c: '',
-        TC_Connect_Description__c:'',
-        TC_Connect_Raw_Project__c: JSON.stringify(project)
-      };
-
-      const expectedCampaignMember = {
-        LeadId: leadId,
-        CampaignId: sfCampaignId,
-      };
-
-      const queryStub = sandbox.stub(SalesforceService, 'query');
-      queryStub.onCall(0)
-        .returns(Promise.resolve({ records: [{ Id: leadId }] }));
-      const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
-      const updateStub = sandbox.stub(SalesforceService,'updateObject', async() => {});
-
-      await ConsumerService.processProjectCreated(logger, project);
-      getCampaignIdStub.should.have.been.called;
-      getUserStub.should.have.been.calledWith(userId);
-      authenticateStub.should.have.been.called;
-      createObjectStub.should.not.have.been.called;
-      queryStub.should.have.been.calledWith(leadSql, sfAuth.accessToken, sfAuth.instanceUrl);
-      updateStub.should.have.been.calledWith(leadId, 'Lead', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
+      // queryStub.should.have.been.calledWith(leadSql, sfAuth.accessToken, sfAuth.instanceUrl);
+      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
+      // createObjectStub.should.have.been.calledWith('CampaignMember', expectedCampaignMember, sfAuth.accessToken,
+        // sfAuth.instanceUrl);
     });
 
     it('should throw UnprocessableError primary customer is not found', async() => {
