@@ -65,7 +65,7 @@ workflows:
       - deploy_dev:
           filters:
             branches:
-              only: [ dev, dev-circleci2 ]
+              only: [ dev, 'feature/event-based-salesforce-integration' ]
           requires:
             - build
       - deploy_prod:
