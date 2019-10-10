@@ -43,7 +43,7 @@ class LeadService {
       const { accessToken, instanceUrl } = responses[1];
       const lead = {
         Type__c: 'connect.user.registered',
-        Json__c: user
+        Json__c: JSON.stringify(user)
       };
       return SalesforceService.createObject('Connect_Event__c', lead, accessToken, instanceUrl)
       .catch( (e) => {
