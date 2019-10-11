@@ -52,11 +52,13 @@ describe('ConsumerService', () => {
         isPrimary: true,
       },
     ],
+    createdByEmail : "jd@example.com"
   };
   const projectUpdatePaylod = {
     original: {
       id: 1,
-      status: 'in_review'
+      status: 'in_review',
+      createdByEmail : "jd@example.com"
     },
     updated: {
       id: 1,

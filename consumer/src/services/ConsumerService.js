@@ -81,7 +81,8 @@ class ConsumerService {
       SalesforceService.authenticate(),
     ]).then((responses) => {
       // const campaignId = responses[0];
-      // const user = responses[1];
+      const user = responses[1];
+      project.createdByEmail = user.email;
       const { accessToken, instanceUrl } = responses[2];
       const leadData = {
         Type__c: 'connect.project.created',
@@ -117,10 +118,13 @@ class ConsumerService {
 
     return Promise.all([
       ConfigurationService.getSalesforceCampaignId(),
+      IdentityService.getUser(project.createdBy),
       SalesforceService.authenticate(),
     ]).then((responses) => {
       const campaignId = responses[0];
-      const { accessToken, instanceUrl } = responses[1];
+      const user = responses[1];
+      const { accessToken, instanceUrl } = responses[2];
+      projectEvent.original.createdByEmail = user.email;
 
       const leadData = {
         Type__c: 'connect.project.updated',
