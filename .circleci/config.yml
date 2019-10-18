@@ -46,7 +46,6 @@ jobs:
       - image: circleci/node:8.9.4
     environment:
       LOG_LEVEL: debug
-    working_directory: ./consumer
     steps:
       - restore_cache:
           key: test-node-modules-{{ checksum "package.json" }}
