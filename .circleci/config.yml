@@ -1,76 +1,90 @@
 version: 2
-
-# Node image for node project
-node_env: &node_env
-  docker:
-    - image: circleci/node:6.14.3-stretch-browsers
-
-# Python image to run aws utilities
 python_env: &python_env
   docker:
     - image: circleci/python:2.7-stretch-browsers
-
-# Instructions of installing aws utilities
+    
 install_awscli: &install_awscli
   name: "Install awscli"
   command: |
-    sudo pip install awscli awsebcli --upgrade
-    aws --version
-    eb --version
-
+    sudo pip install awscli --upgrade
+install_deploysuite: &install_deploysuite
+          name: Installation of install_deploysuite.
+          command: |
+            git clone --branch master https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
+            cp ./../buildscript/master_deploy.sh .
+            cp ./../buildscript/buildenv.sh .
+            cp ./../buildscript/awsconfiguration.sh .
+            
 # Instructions of deployment
 deploy_steps: &deploy_steps
   - checkout
   - attach_workspace:
-      at: .
+      at: ./workspace
   - run: *install_awscli
+  - run: *install_deploysuite
   - setup_remote_docker
-  - run: cd consumer && ./deploy/eb-deploy.sh tc-connect2sf $DEPLOY_ENV $CIRCLE_BUILD_NUM
+  - run: cd consumer && docker build -t tc-connect2sf:latest .
+  - deploy:
+      name: "Running Masterscript -  deploy tc-connect2sf " 
+      command: |
+        ./awsconfiguration.sh $DEPLOY_ENV  
+        source awsenvconf
+        ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-service-deployvar
+        source buildenvvar
+        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf-service
 
+        echo "======= Running Masterscript - deploy tc-connect2sf-consumers ==========="
+        if [ -e ${VAR_ENV}-tc-connect2sf-service-appvar.json ]; then  sudo rm -vf ${VAR_ENV}-tc-connect2sf-service-appvar.json; fi
+        ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-consumers-deployvar
+        source buildenvvar
+        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf-service
+        
 jobs:
-  build:
-    <<: *node_env
+  test:
+    docker:
+      - image: circleci/node:8.9.4
+    environment:
+      LOG_LEVEL: debug
     steps:
       - checkout
       - restore_cache:
-          key: node-modules-{{ checksum "consumer/package.json" }}
-      - run: cd consumer && npm install
+          key: test-node-modules-{{ checksum "package.json" }}
+      - run: npm install
       - save_cache:
-          key: node-modules-{{ checksum "consumer/package.json" }}
-          paths: 
-            - consumer/node_modules
-      - run: cd consumer && npm run test
+          key: test-node-modules-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
       - persist_to_workspace:
           root: .
           paths:
-            - ./consumer/node_modules
-
-  deploy_prod:
+            - dist
+            
+  deployProd:
     <<: *python_env
     environment:
       DEPLOY_ENV: "PROD"
+      VAR_ENV: "prod"
     steps: *deploy_steps
 
-  deploy_dev:
+  deployDev:
     <<: *python_env
     environment:
       DEPLOY_ENV: "DEV"
-    steps: *deploy_steps
-
+      VAR_ENV: "dev"
+    steps: *deploy_steps 
+    
 workflows:
   version: 2
-  build-and-deploy:
+  build:
     jobs:
-      - build
-      - deploy_dev:
+      - test
+      - deployDev:
+          context : org-global
+          requires:
+            - test
           filters:
             branches:
-              only: [ dev, 'feature/event-based-salesforce-integration' ]
-          requires:
-            - build
-      - deploy_prod:
-          filters:
-            branches:
-              only: master
-          requires:
-            - build
+              only: ['dev', 'feature/event-based-salesforce-integration']
