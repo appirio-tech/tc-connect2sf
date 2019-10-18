@@ -27,7 +27,7 @@ deploy_steps: &deploy_steps
   - deploy:
       name: "Running Masterscript -  deploy tc-connect2sf " 
       command: |
-        cd consumer
+        # cd consumer
         ./awsconfiguration.sh $DEPLOY_ENV  
         source awsenvconf
         ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-service-deployvar
