@@ -61,7 +61,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - dist
+            - consumer/node_modules
             
   deployProd:
     <<: *python_env
