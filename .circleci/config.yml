@@ -43,7 +43,7 @@ deploy_steps: &deploy_steps
 jobs:
   test:
     docker:
-      - image: circleci/node:8.9.4
+      - image: circleci/node:6.14.3-stretch-browsers
     environment:
       LOG_LEVEL: debug
     steps:
