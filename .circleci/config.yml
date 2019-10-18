@@ -46,9 +46,9 @@ jobs:
       - image: circleci/node:8.9.4
     environment:
       LOG_LEVEL: debug
+    working_directory: ./consumer
     steps:
       - checkout
-      - run: cd consumer
       - restore_cache:
           key: test-node-modules-{{ checksum "package.json" }}
       - run: npm install
