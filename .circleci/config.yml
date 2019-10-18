@@ -49,10 +49,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: test-node-modules-{{ checksum "package.json" }}
+          key: test-node-modules-{{ checksum "consumer/package.json" }}
       - run: cd consumer && npm install
       - save_cache:
-          key: test-node-modules-{{ checksum "package.json" }}
+          key: test-node-modules-{{ checksum "consumer/package.json" }}
           paths:
             - consumer/node_modules
       - run: cd consumer && npm run lint
