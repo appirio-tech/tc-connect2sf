@@ -48,17 +48,16 @@ jobs:
       LOG_LEVEL: debug
     working_directory: ./consumer
     steps:
-      - checkout
       - restore_cache:
           key: test-node-modules-{{ checksum "package.json" }}
-      - run: npm install
+      - run: cd consumer && npm install
       - save_cache:
           key: test-node-modules-{{ checksum "package.json" }}
           paths:
-            - node_modules
-      - run: npm run lint
-      - run: npm run test
-      - run: npm run build
+            - consumer/node_modules
+      - run: cd consumer && npm run lint
+      - run: cd consumer && npm run test
+      - run: cd consumer && npm run build
       - persist_to_workspace:
           root: .
           paths:
