@@ -57,7 +57,7 @@ jobs:
             - consumer/node_modules
       # - run: cd consumer && npm run lint
       - run: cd consumer && npm run test
-      - run: cd consumer && npm run build
+      # - run: cd consumer && npm run build
       - persist_to_workspace:
           root: .
           paths:
