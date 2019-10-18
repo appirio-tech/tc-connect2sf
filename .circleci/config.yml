@@ -20,10 +20,11 @@ deploy_steps: &deploy_steps
   - checkout
   - attach_workspace:
       at: ./workspace
+  - run: cd consumer
   - run: *install_awscli
   - run: *install_deploysuite
   - setup_remote_docker
-  - run: cd consumer && docker build -t tc-connect2sf:latest .
+  - run: docker build -t tc-connect2sf:latest .
   - deploy:
       name: "Running Masterscript -  deploy tc-connect2sf " 
       command: |
@@ -47,6 +48,7 @@ jobs:
       LOG_LEVEL: debug
     steps:
       - checkout
+      - run: cd consumer
       - restore_cache:
           key: test-node-modules-{{ checksum "package.json" }}
       - run: npm install
