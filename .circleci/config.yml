@@ -51,6 +51,7 @@ jobs:
       - restore_cache:
           key: test-node-modules-{{ checksum "consumer/package.json" }}
       - run: cd consumer && npm install
+      - run: npm install -g better-npm-run
       - save_cache:
           key: test-node-modules-{{ checksum "consumer/package.json" }}
           paths:
