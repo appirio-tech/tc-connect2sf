@@ -150,6 +150,7 @@ if (!module.parent) {
   app.use(bodyParser.urlencoded({
     extended: true,
   }));
+  app.logger = logger;
 
   app.use((req, res, next) => {
     if (req.url !== `/${config.apiVersion}/connect2sf/health`) {
