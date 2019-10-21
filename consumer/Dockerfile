@@ -23,7 +23,7 @@ RUN npm install -g forever babel-cli
 
 #RUN service cron start
 
-EXPOSE 80
+EXPOSE 3000
 
 ENTRYPOINT ["npm","run"]
 # CMD forever -c "npm start" --uid "consumer"  .
