@@ -25,4 +25,5 @@ RUN npm install -g forever babel-cli
 
 EXPOSE 80
 
-CMD forever -c "npm start" --uid "consumer"  .
+ENTRYPOINT ["npm","run"]
+# CMD forever -c "npm start" --uid "consumer"  .
