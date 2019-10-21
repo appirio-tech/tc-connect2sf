@@ -15,6 +15,7 @@ import ConsumerService from './services/ConsumerService';
 import LeadService from './services/LeadService';
 import { EVENT, ERROR } from '../config/constants';
 import { start as scheduleStart } from './scheduled-worker';
+const healthcheck = require('topcoder-healthcheck-dropin');
 
 const debug = require('debug')('app:worker');
 
@@ -162,6 +163,8 @@ if (!module.parent) {
     const result = await LeadService.postLead(req.body);
     res.json(result);
   }));
+
+  healthcheck.init();
 
   // Error handler
   app.use(async (err, req, res, next) => {

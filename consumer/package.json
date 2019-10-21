@@ -53,6 +53,7 @@
     "superagent": "^2.1.0",
     "superagent-promise": "^1.1.0",
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git",
+    "topcoder-healthcheck-dropin": "^1.0.3",
     "winston": "^2.2.0"
   },
   "devDependencies": {
