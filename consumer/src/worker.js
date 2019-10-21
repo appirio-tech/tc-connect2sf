@@ -15,7 +15,6 @@ import ConsumerService from './services/ConsumerService';
 import LeadService from './services/LeadService';
 import { EVENT, ERROR } from '../config/constants';
 import { start as scheduleStart } from './scheduled-worker';
-const healthcheck = require('topcoder-healthcheck-dropin');
 
 const debug = require('debug')('app:worker');
 
@@ -153,18 +152,27 @@ if (!module.parent) {
   }));
 
   app.use((req, res, next) => {
-    middleware.jwtAuthenticator({
-      AUTH_SECRET: config.authSecret,
-      VALID_ISSUERS: config.validIssuers,
-    })(req, res, next);
+    if (req.url !== `/${config.apiVersion}/connect2sf/health`) {
+      middleware.jwtAuthenticator({
+        AUTH_SECRET: config.authSecret,
+        VALID_ISSUERS: config.validIssuers,
+      })(req, res, next);
+    } else {
+      next();
+    }
+  });
+
+  app.get(`/${config.apiVersion}/connect2sf/health`, (req, res) => {
+    // TODO more checks
+    res.status(200).send({
+      message: 'All-is-well',
+    });
   });
 
   app.post(`/${config.apiVersion}/connect2sf/leadInfo`, asyncHandler(async (req, res, next) => {
     const result = await LeadService.postLead(req.body);
     res.json(result);
   }));
-
-  healthcheck.init();
 
   // Error handler
   app.use(async (err, req, res, next) => {
