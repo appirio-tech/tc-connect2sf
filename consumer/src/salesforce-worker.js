@@ -18,7 +18,6 @@ process.once('SIGINT', () => {
 function start() {
   debug(config.salesforce.audience, "Salesforce Audience");
   SalesforceService.authenticate().then((authResp) => {
-    debug(authResp, 'authResp');
     const { accessToken, instanceUrl } = authResp;
     client = new faye.Client(instanceUrl + '/cometd/44.0/', { timeout: 1 });
     debug('CLient created...');
