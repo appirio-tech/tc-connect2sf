@@ -9,8 +9,8 @@
     "dev": "./node_modules/.bin/better-npm-run dev",
     "start": "./node_modules/.bin/better-npm-run start",
     "startWorker": "./node_modules/.bin/better-npm-run startWorker",
-    "startSalesforceConsumers": "./node_modules/.bin/better-npm-run startSalesforceConsumers",
     "test": "./node_modules/.bin/better-npm-run test",
+    "startSalesforceConsumers": "./node_modules/.bin/better-npm-run startSalesforceConsumers",
     "coverage": "babel-node node_modules/.bin/babel-istanbul cover _mocha -- test/*.spec.js"
   },
   "betterScripts": {
