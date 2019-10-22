@@ -9,6 +9,7 @@
     "dev": "./node_modules/.bin/better-npm-run dev",
     "start": "./node_modules/.bin/better-npm-run start",
     "startWorker": "./node_modules/.bin/better-npm-run startWorker",
+    "startSalesforceConsumers": "./node_modules/.bin/better-npm-run startSalesforceConsumers",
     "test": "./node_modules/.bin/better-npm-run test",
     "coverage": "babel-node node_modules/.bin/babel-istanbul cover _mocha -- test/*.spec.js"
   },
@@ -25,6 +26,9 @@
     },
     "startWorker": {
       "command": "babel-node src/worker"
+    },
+    "startSalesforceConsumers": {
+      "command": "babel-node src/salesforce-worker"
     },
     "test": {
       "command": "mocha --compilers js:babel-register test/*.spec.js",
@@ -50,6 +54,7 @@
     "cors": "^2.8.4",
     "debug": "^2.2.0",
     "express": "^4.16.3",
+    "faye": "^1.2.4",
     "joi": "^9.0.4",
     "jsonwebtoken": "^7.1.7",
     "lodash": "^4.14.2",
