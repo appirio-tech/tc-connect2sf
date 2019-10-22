@@ -8,18 +8,22 @@
     "lint:fix": "npm run lint -- --fix",
     "dev": "./node_modules/.bin/better-npm-run dev",
     "start": "./node_modules/.bin/better-npm-run start",
+    "startWorker": "./node_modules/.bin/better-npm-run startWorker",
     "test": "./node_modules/.bin/better-npm-run test",
     "coverage": "babel-node node_modules/.bin/babel-istanbul cover _mocha -- test/*.spec.js"
   },
   "betterScripts": {
     "dev": {
-      "command": "nodemon --exec babel-node src/worker",
+      "command": "nodemon --exec babel-node src/api",
       "env": {
         "NODE_ENV": "development",
         "DEBUG": "app:*"
       }
     },
     "start": {
+      "command": "babel-node src/api"
+    },
+    "startWorker": {
       "command": "babel-node src/worker"
     },
     "test": {
