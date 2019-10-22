@@ -1,7 +1,7 @@
 /**
  * Unit tests for worker
  */
-import {processMessage, initHandlers} from '../src/scheduled-worker';
+import {processMessage, initHandlers} from '../src/worker';
 import {UnprocessableError} from '../src/common/errors';
 import { EVENT } from '../config/constants';
 import config from 'config';
