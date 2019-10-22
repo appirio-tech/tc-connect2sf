@@ -4,7 +4,7 @@
 
 import config from 'config';
 import express from 'express';
-import faye from 'faye';
+// import faye from 'faye';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import _ from 'lodash';
