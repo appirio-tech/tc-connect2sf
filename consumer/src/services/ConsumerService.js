@@ -5,15 +5,13 @@
 import Joi from 'joi';
 import _ from 'lodash';
 import config from 'config';
-import {logAndValidate} from '../common/decorators';
+import {log, validate} from '../common/decorators';
 import ConfigurationService from './ConfigurationService';
 import IdentityService from './IdentityService';
 import SalesforceService from './SalesforceService';
 import {UnprocessableError} from '../common/errors';
 
 const memberRole = 'customer';
-const leadSource = 'Connect';
-const company = 'Unknown';
 const duplicateRecordRegex = /TC_Connect_Project_Id__c duplicates value on record/;
 
 const projectCreatedSchema = Joi.object().keys({
@@ -66,7 +64,8 @@ class ConsumerService {
    * Handle a new created project
    * @param {Object} projectEvent the project event
    */
-  @logAndValidate(['logger','project'], projectCreatedSchema)
+  @log(['project'])
+  @validate(['logger','project'], projectCreatedSchema)
   processProjectCreated(logger, project) {
     const member = _.find(project.members, {role: memberRole, isPrimary: true});
     if (!member) {
@@ -108,7 +107,8 @@ class ConsumerService {
    * Handle created/launched project
    * @param {Object} projectEvent the project
    */
-  @logAndValidate(['logger', 'projectEvent'], projectUpdatedSchema)
+  @log(['projectEvent'])
+  @validate(['logger', 'projectEvent'], projectUpdatedSchema)
   processProjectUpdated(logger, projectEvent) {
     logger.debug(projectEvent)
     delete projectEvent.original.template;
