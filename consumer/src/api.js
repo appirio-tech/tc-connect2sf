@@ -58,6 +58,7 @@ function start() {
   app.logger = logger;
 
   app.use((req, res, next) => {
+    req.log = logger;
     if (req.url !== `/${config.apiVersion}/connect2sf/health`) {
       middleware.jwtAuthenticator({
         AUTH_SECRET: config.authSecret,
@@ -69,14 +70,14 @@ function start() {
   });
 
   app.get(`/${config.apiVersion}/connect2sf/health`, (req, res) => {
-    req.logger.debug('Health check');
+    req.log.debug('Health check');
     res.status(200).send({
       message: 'All-is-well',
     });
   });
 
   app.post(`/${config.apiVersion}/connect2sf/leadInfo`, asyncHandler(async (req, res, next) => {
-    req.logger.debug('Post LeadInfo');
+    req.log.debug('Post LeadInfo');
     const result = await LeadService.postLead(req.body);
     res.json(result);
   }));
