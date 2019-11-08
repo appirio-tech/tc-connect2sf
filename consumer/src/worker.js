@@ -170,7 +170,8 @@ export async function scheduleStart() {
         }).catch(() => {
           console.log('get failed to consume')
         })
-      })
+      });
+      scheduledConnection.close();
     })
     
   } catch (e) {
