@@ -12,7 +12,6 @@ import logger from './common/logger';
 import ConsumerService from './services/ConsumerService';
 import LeadService from './services/LeadService';
 import { EVENT, ERROR } from '../config/constants';
-import SalesforceService from './services/SalesforceService';
 
 const debug = require('debug')('app:worker');
 

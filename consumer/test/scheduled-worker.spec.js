@@ -1,7 +1,7 @@
 /**
  * Unit tests for worker
  */
-import {processMessage, initHandlers} from '../src/worker';
+import {consumeFailedMessage, initHandlers} from '../src/worker';
 import {UnprocessableError} from '../src/common/errors';
 import { EVENT } from '../config/constants';
 import config from 'config';
@@ -55,17 +55,17 @@ describe('scheduled-worker', () => {
      * @param done the mocha done function
      */
     function invokeProcessMessages(message, done) {
-      return processMessage({
+      return consumeFailedMessage({
         ack,
         nack,
         assertExchange,
         bindQueue,
         assertQueue,
-      }, message);
+      }, message, 0);
     }
 
     it('should process and ack a message successfully', () => {
-      invokeProcessMessages(validMessage).then(() => {
+      return invokeProcessMessages(validMessage).then(() => {
         ack.should.have.been.calledWith(validMessage);
         nack.should.not.have.been.called;
       }).catch(() => {
@@ -74,7 +74,7 @@ describe('scheduled-worker', () => {
     });
 
     it('should ignore an empty msg', () => {
-      invokeProcessMessages(null).then(()=> {
+      return invokeProcessMessages(null).then(()=> {
         sinon.fail('should not scucced');
       }).catch(() => {
         ack.should.not.have.been.called;
@@ -83,7 +83,7 @@ describe('scheduled-worker', () => {
     });
 
     it('should ignore an false msg', () => {
-      invokeProcessMessages(false).then(()=> {
+      return invokeProcessMessages(false).then(()=> {
         sinon.fail('should not scucced');
       }).catch(() => {
         ack.should.not.have.been.called;
@@ -93,7 +93,7 @@ describe('scheduled-worker', () => {
 
     it('should ack a message with invalid JSON', () => {
       const msg = { content: 'foo', fields: { routingKey: exchangeName } };
-      invokeProcessMessages(msg).then(()=> {
+      return invokeProcessMessages(msg).then(()=> {
         sinon.fail('should not scucced');
       }).catch(() => {
         ack.should.have.been.calledWith(msg);
@@ -107,7 +107,7 @@ describe('scheduled-worker', () => {
         properties: { correlationId : 'unit-tests'},
         fields: { routingKey: exchangeName }
       };
-      invokeProcessMessages(msg).then(() => {
+      return invokeProcessMessages(msg).then(() => {
         sinon.fail('should not scucced');
       })
       .catch(() => {
@@ -122,7 +122,7 @@ describe('scheduled-worker', () => {
         properties: { correlationId : 'unit-tests'},
         fields: { routingKey: exchangeName }
       };
-      invokeProcessMessages(msg).then(() => {
+      return invokeProcessMessages(msg).then(() => {
         sinon.fail('should not scucced');
       })
       .catch(() => {

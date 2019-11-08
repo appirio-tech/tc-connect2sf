@@ -25,5 +25,8 @@
       "project": "dev.project.service",
       "connect2sf": "dev.tc.connect2sf.exclusive"
     }
-  }
+  },
+  "AUTH0_PROXY_SERVER_URL": "https://auth0.topcoder-dev.com",
+  "AUTH0_AUDIENCE": "AUTH0_AUDIENCE",
+  "TOKEN_CACHE_TIME" : "TOKEN_CACHE_TIME"
 }

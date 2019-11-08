@@ -9,6 +9,8 @@ import cron from 'node-cron';
 import logger from './common/logger';
 import ConsumerService from './services/ConsumerService';
 import { EVENT } from '../config/constants';
+const tcCoreLibAuth = require('tc-core-library-js').auth;
+global.M2m = tcCoreLibAuth.m2m(config);
 
 const debug = require('debug')('app:worker');
 
@@ -50,11 +52,10 @@ export function initHandlers(handlers) {
 }
 
 /**
- * Processes the given message and acks/nacks the channel
- * @param {Object} channel the target channel
+ * Processes the given message
  * @param {Object} msg the message to be processed
  */
-export function processMessage(channel, msg) {
+function processMessage(msg) {
   return new Promise((resolve, reject) => {
     if (!msg) {
       reject(new Error('Empty message. Ignoring'));
@@ -75,7 +76,7 @@ export function processMessage(channel, msg) {
       }
       data = JSON.parse(msg.content.toString());
     } catch (ignore) {
-      logger.info(ignore);
+      logger.verbose(ignore);
       logger.error('Invalid message. Ignoring');
       resolve('Invalid message. Ignoring');
       return;
@@ -107,6 +108,37 @@ function assertExchangeQueues(channel, exchangeName, queue) {
   return Promise.all(bindingPromises);
 }
 
+export function consumeFailedMessage(connect2sfChannel, msg, counter) {
+  if (msg) {
+    return processMessage(
+      msg
+    ).then((responses) => {
+      console.log(responses)
+      counter++;
+      debug('Processed message');
+      connect2sfChannel.ack(msg);
+      if (counter >= FETCH_LIMIT) {
+        close();
+      }
+    }).catch((e) => {
+      counter++;
+      debug('Processed message with Error');
+      connect2sfChannel.nack(msg);
+      logger.logFullError(e, `Unable to process one of the messages`);
+      if (counter >= FETCH_LIMIT) {
+        close();
+      }
+    })
+  } else {
+    counter++;
+    debug('Processed Empty message');
+    if (counter >= FETCH_LIMIT) {
+      close();
+    }
+    return Promise.resolve('Processed Empty message');
+  }
+}
+
 /**
  * Start the worker
  */
@@ -134,33 +166,7 @@ export async function scheduleStart() {
       _.range(1, 11).forEach(() => {
         return connect2sfChannel.get(config.rabbitmq.queues.connect2sf).
         then((msg) => {
-          if (msg) {
-            return processMessage(
-              connect2sfChannel,
-              msg
-            ).then((responses) => {
-              counter++;
-              debug('Processed message');
-              connect2sfChannel.ack(msg);
-              if (counter >= FETCH_LIMIT) {
-                close();
-              }
-            }).catch((e) => {
-              counter++;
-              debug('Processed message with Error');
-              connect2sfChannel.nack(msg);
-              logger.logFullError(e, `Unable to process one of the messages`);
-              if (counter >= FETCH_LIMIT) {
-                close();
-              }
-            })
-          } else {
-            counter++;
-            debug('Processed Empty message');
-            if (counter >= FETCH_LIMIT) {
-              close();
-            }
-          }
+          return consumeFailedMessage(connect2sfChannel, msg, counter);
         }).catch(() => {
           console.log('get failed to consume')
         })
@@ -205,7 +211,7 @@ export async function consume(channel, exchangeName, queue, publishChannel) {
         }
         data = JSON.parse(msg.content.toString());
       } catch (ignore) {
-        logger.info(ignore);
+        logger.verbose(ignore);
         logger.error('Invalid message. Ignoring');
         channel.ack(msg);
         return;
