@@ -4,9 +4,7 @@
 
 import Joi from 'joi';
 import _ from 'lodash';
-import config from 'config';
 import {log, validate} from '../common/decorators';
-import ConfigurationService from './ConfigurationService';
 import IdentityService from './IdentityService';
 import SalesforceService from './SalesforceService';
 import {UnprocessableError} from '../common/errors';
@@ -32,31 +30,6 @@ const projectUpdatedSchema = Joi.object().keys({
     }).required()
 }).unknown(true);
 
-function getUpdatedLeadFieldData(projectUpdated) {
-  const updatedLead = {};
-
-  if (projectUpdated.status) {
-    updatedLead.TC_Connect_Project_Status__c = projectUpdated.status;
-  }
-  
-  if (projectUpdated.cancelReason) {
-    updatedLead.TC_Connect_Cancel_Reason__c = projectUpdated.cancelReason;
-  }
-  
-  if(projectUpdated.description) {
-    updatedLead.TC_Connect_Description__c = projectUpdated.description;
-  }
-
-  if (projectUpdated.directProjectId) {
-    updatedLead.TC_Connect_Direct_Project_Id__c = _.get(projectUpdated, "directProjectId","");
-  }
-
-  // updates the raw project JSON
-  updatedLead.TC_Connect_Raw_Project__c = JSON.stringify(projectUpdated);
-
-  return updatedLead;
-}
-
 
 class ConsumerService {
 
@@ -75,14 +48,12 @@ class ConsumerService {
       throw new UnprocessableError('Cannot find primary customer');
     }
     return Promise.all([
-      ConfigurationService.getSalesforceCampaignId(),
       IdentityService.getUser(member.userId),
       SalesforceService.authenticate(),
     ]).then((responses) => {
-      // const campaignId = responses[0];
-      const user = responses[1];
+      const user = responses[0];
       project.createdByEmail = user.email;
-      const { accessToken, instanceUrl } = responses[2];
+      const { accessToken, instanceUrl } = responses[1];
       const leadData = {
         Type__c: 'connect.project.created',
         Json__c: JSON.stringify(project),
@@ -117,13 +88,11 @@ class ConsumerService {
     var projectUpdated = projectEvent.updated;
 
     return Promise.all([
-      ConfigurationService.getSalesforceCampaignId(),
       IdentityService.getUser(project.createdBy),
       SalesforceService.authenticate(),
     ]).then((responses) => {
-      const campaignId = responses[0];
-      const user = responses[1];
-      const { accessToken, instanceUrl } = responses[2];
+      const user = responses[0];
+      const { accessToken, instanceUrl } = responses[1];
       projectEvent.original.createdByEmail = user.email;
 
       const leadData = {

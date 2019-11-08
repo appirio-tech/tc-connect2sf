@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 import ConsumerService from '../src/services/ConsumerService';
-import ConfigurationService from '../src/services/ConfigurationService';
 import SalesforceService from '../src/services/SalesforceService';
 import IdentityService from '../src/services/IdentityService';
 import {UnprocessableError} from '../src/common/errors';
@@ -68,13 +67,11 @@ describe('ConsumerService', () => {
   }
   let sandbox;
   let getUserStub;
-  let getCampaignIdStub;
   let authenticateStub;
 
   // mock all external services
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
-    getCampaignIdStub = sandbox.stub(ConfigurationService, 'getSalesforceCampaignId', async() => sfCampaignId);
     getUserStub = sandbox.stub(IdentityService, 'getUser', async() => user);
     authenticateStub = sandbox.stub(SalesforceService, 'authenticate', async() => sfAuth);
   });
@@ -93,7 +90,6 @@ describe('ConsumerService', () => {
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
 
       await ConsumerService.processProjectCreated(logger, project);
-      getCampaignIdStub.should.have.been.called;
       getUserStub.should.have.been.calledWith(userId);
       authenticateStub.should.have.been.called;
       createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);

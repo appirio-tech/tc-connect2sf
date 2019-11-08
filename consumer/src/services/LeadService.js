@@ -3,9 +3,7 @@
  */
 
 import Joi from 'joi';
-import config from 'config';
 import {logAndValidate} from '../common/decorators';
-import ConfigurationService from './ConfigurationService';
 import SalesforceService from './SalesforceService';
 
 const postLeadSchema = Joi.object().keys({
@@ -37,11 +35,9 @@ class LeadService {
     console.log(user, 'user');
     let leadId = 0;
     return Promise.all([
-      ConfigurationService.getSalesforceCampaignId(),
       SalesforceService.authenticate(),
     ]).then((responses) => {
-      // const campaignId = responses[0];
-      const { accessToken, instanceUrl } = responses[1];
+      const { accessToken, instanceUrl } = responses[0];
       const lead = {
         Type__c: 'connect.user.registered',
         Json__c: JSON.stringify(user)
