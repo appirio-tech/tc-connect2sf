@@ -51,7 +51,7 @@ const activateProject = (projectId) => (
   M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
     .then((token) => (
       request
-        .patch(`${config.projectApi.url}/projects/${projectId}/`)
+        .patch(`${config.projectApi.url}/projects/${projectId}`)
         .set('accept', 'application/json')
         .set('Authorization', `Bearer ${token}`)
         .send({ param : { status : 'active' } })

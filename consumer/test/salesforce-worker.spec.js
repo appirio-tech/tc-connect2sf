@@ -7,10 +7,11 @@ import './setup';
 
 describe('salesforce-worker', () => {
   let sampleSalesforceEvent = {
-      Type__c: "billingAccount.updated",
-      Json__c: {
-        connectProjectId__c: 1234
-      }
+    payload: {
+      Type__c: 'billingAccount.updated',
+      Original__c: '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : false }',
+      Updated__c : '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : true }'
+    }
   }
   describe('consumeMessage', () => {
     let activateProjectSpy;
