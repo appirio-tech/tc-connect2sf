@@ -94,4 +94,4 @@ workflows:
             - test
           filters:
             branches:
-              only: ['dev', 'feature/event-based-salesforce-integration']
+              only: ['dev']
