@@ -60,6 +60,9 @@ const activateProject = (projectId) => (
             throw new Error(`Failed to activate project with id: ${projectId}`);
           }
           const project = _.get(res, 'body.result.content');
+          if (project) {
+            console.log(`Successfully activated the project with id ${projectId}`);
+          }
           return project;
         }).catch((err) => {
           console.log(err);
