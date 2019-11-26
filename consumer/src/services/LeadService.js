@@ -3,9 +3,7 @@
  */
 
 import Joi from 'joi';
-import config from 'config';
 import {logAndValidate} from '../common/decorators';
-import ConfigurationService from './ConfigurationService';
 import SalesforceService from './SalesforceService';
 
 const postLeadSchema = Joi.object().keys({
@@ -18,11 +16,12 @@ const postLeadSchema = Joi.object().keys({
     companyName: Joi.string().required(),
     companySize: Joi.string().optional(),
     userName: Joi.string().required(),
+    userId: Joi.number().optional(),
     optOutMarketingEmails: Joi.bool().optional(),
   }),
 }).required();
 
-const leadSource = 'Connect';
+// const leadSource = 'Connect';
 
 class LeadService {
 
@@ -36,33 +35,15 @@ class LeadService {
     console.log(user, 'user');
     let leadId = 0;
     return Promise.all([
-      ConfigurationService.getSalesforceCampaignId(),
       SalesforceService.authenticate(),
     ]).then((responses) => {
-      const campaignId = responses[0];
-      const { accessToken, instanceUrl } = responses[1];
+      const { accessToken, instanceUrl } = responses[0];
       const lead = {
-        Title: user.title,
-        FirstName: user.firstName,
-        LastName: user.lastName,
-        Email: user.businessEmail,
-        Phone: user.businessPhone ? user.businessPhone : '',
-        LeadSource: leadSource,
-        Company: user.companyName,
-        No_of_Employees__c: user.companySize,
-        OwnerId: config.ownerId,
-        TC_Handle__c: user.userName,
-        HasOptedOutOfEmail: user.optOutMarketingEmails,
+        Type__c: 'connect.user.registered',
+        Json__c: JSON.stringify(user)
       };
-      return SalesforceService.createObject('Lead', lead, accessToken, instanceUrl)
-      .then((_leadId) => {
-        leadId = _leadId;
-        const campaignMember = {
-          LeadId: _leadId,
-          CampaignId: campaignId,
-        };
-        return SalesforceService.createObject('CampaignMember', campaignMember, accessToken, instanceUrl);
-      }).catch( (e) => {
+      return SalesforceService.createObject('Connect_Event__c', lead, accessToken, instanceUrl)
+      .catch( (e) => {
         throw e;
       })
     }).then(() => {

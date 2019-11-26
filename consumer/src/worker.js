@@ -4,37 +4,181 @@
 
 import config from 'config';
 import amqp from 'amqplib';
-import express from 'express';
-import cors from 'cors';
-import cron from 'node-cron';
-import bodyParser from 'body-parser';
 import _ from 'lodash';
-import { middleware } from 'tc-core-library-js';
+import cron from 'node-cron';
 import logger from './common/logger';
 import ConsumerService from './services/ConsumerService';
-import LeadService from './services/LeadService';
-import { EVENT, ERROR } from '../config/constants';
-import { start as scheduleStart } from './scheduled-worker';
+import { EVENT } from '../config/constants';
+const tcCoreLibAuth = require('tc-core-library-js').auth;
+global.M2m = tcCoreLibAuth.m2m(config);
 
 const debug = require('debug')('app:worker');
 
+const FETCH_LIMIT = 10;
+
 let connection;
+let scheduledConnection;
 process.once('SIGINT', () => {
+  debug('Received SIGINT...closing connection...')
   try {
     connection.close();
   } catch (ignore) { // eslint-ignore-line
+    logger.logFullError(ignore)
+  }
+  try {
+    scheduledConnection.close();
+  } catch (ignore) { // eslint-ignore-line
+    logger.logFullError(ignore)
   }
   process.exit();
 });
 
 let EVENT_HANDLERS = {
   [EVENT.ROUTING_KEY.PROJECT_DRAFT_CREATED]: ConsumerService.processProjectCreated,
-  [EVENT.ROUTING_KEY.PROJECT_UPDATED]: ConsumerService.processProjectUpdated,
-};
+  [EVENT.ROUTING_KEY.PROJECT_UPDATED]: ConsumerService.processProjectUpdated
+}
+
+function close() {
+  console.log('closing self after processing messages...')
+  try {
+    setTimeout(connection.close.bind(connection), 30000);
+  } catch (ignore) { // eslint-ignore-line
+    logger.logFullError(ignore)
+  }
+}
 
 export function initHandlers(handlers) {
   EVENT_HANDLERS = handlers;
 }
+
+/**
+ * Processes the given message
+ * @param {Object} msg the message to be processed
+ */
+function processMessage(msg) {
+  return new Promise((resolve, reject) => {
+    if (!msg) {
+      reject(new Error('Empty message. Ignoring'));
+      return;
+    }
+    debug(`Consuming message in \n${msg.content}`);
+    const key = _.get(msg, 'fields.routingKey');
+    debug('Received Message', key, msg.fields);
+
+    let handler;
+    let data;
+    try {
+      handler = EVENT_HANDLERS[key];
+      if (!_.isFunction(handler)) {
+        logger.error(`Unknown message type: ${key}, NACKing... `);
+        reject(new Error(`Unknown message type: ${key}`));
+        return;
+      }
+      data = JSON.parse(msg.content.toString());
+    } catch (ignore) {
+      logger.verbose(ignore);
+      logger.error('Invalid message. Ignoring');
+      resolve('Invalid message. Ignoring');
+      return;
+    }
+    return handler(logger, data).then(() => {
+      resolve(msg);
+      return;
+    })
+    .catch((e) => {
+      // logger.logFullError(e, `Error processing message`);
+      if (e.shouldAck) {
+        debug("Resolving for Unprocessable Error in handler...");
+        resolve(msg);
+      } else {
+        debug("Rejecting promise for error in msg processing...")
+        reject(new Error('Error processing message'));
+      }
+    });
+  })
+}
+
+function assertExchangeQueues(channel, exchangeName, queue) {
+  channel.assertExchange(exchangeName, 'topic', { durable: true });
+  channel.assertQueue(queue, { durable: true });
+  const bindings = _.keys(EVENT_HANDLERS);
+  const bindingPromises = _.map(bindings, rk =>
+    channel.bindQueue(queue, exchangeName, rk));
+  debug('binding queue ' + queue + ' to exchange: ' + exchangeName);
+  return Promise.all(bindingPromises);
+}
+
+export function consumeFailedMessage(connect2sfChannel, msg, counter) {
+  if (msg) {
+    return processMessage(
+      msg
+    ).then((responses) => {
+      console.log(responses)
+      counter++;
+      debug('Processed message');
+      connect2sfChannel.ack(msg);
+      if (counter >= FETCH_LIMIT) {
+        close();
+      }
+    }).catch((e) => {
+      counter++;
+      debug('Processed message with Error');
+      connect2sfChannel.nack(msg);
+      logger.logFullError(e, `Unable to process one of the messages`);
+      if (counter >= FETCH_LIMIT) {
+        close();
+      }
+    })
+  } else {
+    counter++;
+    debug('Processed Empty message');
+    if (counter >= FETCH_LIMIT) {
+      close();
+    }
+    return Promise.resolve('Processed Empty message');
+  }
+}
+
+/**
+ * Start the worker
+ */
+export async function scheduleStart() {
+  try {
+    console.log("Scheduled Worker Connecting to RabbitMQ: " + config.rabbitmqURL.substr(-5));
+    scheduledConnection = await amqp.connect(config.rabbitmqURL);
+    scheduledConnection.on('error', (e) => {
+      logger.logFullError(e, `ERROR IN CONNECTION`);
+    })
+    scheduledConnection.on('close', () => {
+      debug('Before closing connection...')
+    })
+    debug('created connection successfully with URL: ' + config.rabbitmqURL);
+    const connect2sfChannel = await scheduledConnection.createConfirmChannel();
+    debug('Channel created for consuming failed messages ...');
+    connect2sfChannel.prefetch(FETCH_LIMIT);
+    assertExchangeQueues(
+      connect2sfChannel,
+      config.rabbitmq.connect2sfExchange,
+      config.rabbitmq.queues.connect2sf
+    ).then(() => {
+      debug('Asserted all required exchanges and queues');
+      let counter = 0;
+      _.range(1, 11).forEach(() => {
+        return connect2sfChannel.get(config.rabbitmq.queues.connect2sf).
+        then((msg) => {
+          return consumeFailedMessage(connect2sfChannel, msg, counter);
+        }).catch(() => {
+          console.log('get failed to consume')
+        })
+      });
+      scheduledConnection.close();
+    })
+    
+  } catch (e) {
+    logger.logFullError(e, `Unable to connect to RabbitMQ`);
+  }
+}
+
 
 /**
  * Consume messages from the queue
@@ -68,7 +212,7 @@ export async function consume(channel, exchangeName, queue, publishChannel) {
         }
         data = JSON.parse(msg.content.toString());
       } catch (ignore) {
-        logger.info(ignore);
+        logger.verbose(ignore);
         logger.error('Invalid message. Ignoring');
         channel.ack(msg);
         return;
@@ -127,61 +271,15 @@ async function startWorker() {
   }
 }
 
-/*
- * Error handler for Async functions
- */
-const asyncHandler = fn => (req, res, next) => {
-  Promise
-    .resolve(fn(req, res, next))
-    .catch(next);
-};
-
-if (!module.parent) {
+function start() {
+  // regular event consumer
   startWorker();
-
-  if (!process.env.NODE_ENV) {
-    process.env.NODE_ENV = 'development';
-  }
-
-  const app = express();
-
-  app.use(cors());
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({
-    extended: true,
-  }));
-
-  app.use((req, res, next) => {
-    middleware.jwtAuthenticator({
-      AUTH_SECRET: config.authSecret,
-      VALID_ISSUERS: config.validIssuers,
-    })(req, res, next);
-  });
-
-  app.post(`/${config.apiVersion}/connect2sf/leadInfo`, asyncHandler(async (req, res, next) => {
-    const result = await LeadService.postLead(req.body);
-    res.json(result);
-  }));
-
-  // Error handler
-  app.use(async (err, req, res, next) => {
-    let status = ERROR.SERVER_ERROR;
-    let message = err.message;
-    // Fetch actual error message from details for JOI errors
-    if (err.isJoi) {
-      status = ERROR.CLIENT_ERROR;
-      message = err.details[0].message;
-    }
-    if (!message) {
-      message = ERROR.MESSAGE;
-    }
-    res.status(status).send({ message });
-  });
-
-  app.listen(config.port);
-  debug(`Express server listening on port ${config.port} in ${process.env.NODE_ENV} mode`);
-
+  // failed event consumers
   cron.schedule(config.scheduledWorkerSchedule, () => {
     scheduleStart();
   });
+}
+
+if (!module.parent) {
+  start(); 
 }

@@ -76,7 +76,7 @@ describe('worker', () => {
         fakeExchangeHandlerSpy.should.not.have.been.called;
         ack.should.have.been.calledWith(validMessage);
       };
-      invokeConsume(done);
+      return invokeConsume(done);
     });
 
     it('should ignore an empty msg', (done) => {
@@ -85,7 +85,7 @@ describe('worker', () => {
         ack.should.not.have.been.called;
         nack.should.not.have.been.called;
       };
-      invokeConsume(done);
+      return invokeConsume(done);
     });
 
     it('should ack a message with invalid JSON', (done) => {
@@ -95,7 +95,7 @@ describe('worker', () => {
         ack.should.have.been.calledWith(msg);
         nack.should.not.have.been.called;
       };
-      invokeConsume(done);
+      return invokeConsume(done);
     });
 
     it('should ack, with message being copied to temp queue, if error is thrown', (done) => {
@@ -111,7 +111,7 @@ describe('worker', () => {
         const failedRoutingKey = validMessage.fields.routingKey;// + EVENT.ROUTING_KEY.FAILED_SUFFIX;
         channelPublishSpy.should.have.been.calledWith(connect2sfExchange, failedRoutingKey, new Buffer(validMessage.content));
       };
-      invokeConsume(done);
+      return invokeConsume(done);
     });
 
     it('should ack if error is UnprocessableError', (done) => {
@@ -122,7 +122,7 @@ describe('worker', () => {
         await fn(validMessage);
         ack.should.have.been.calledWith(validMessage);
       };
-      invokeConsume(done);
+      return invokeConsume(done);
     });
   });
 });
