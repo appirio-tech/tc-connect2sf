@@ -95,3 +95,10 @@ workflows:
           filters:
             branches:
               only: ['dev']
+      - deployProd:
+          context : org-global
+          requires:
+            - test
+          filters:
+            branches:
+              only: ['master']
