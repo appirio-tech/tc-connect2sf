@@ -39,5 +39,6 @@
     "url": "PROJECTS_API_BASE_URL"
   },
   "authSecret": "AUTH_SECRET",
-  "validIssuers": "VALID_ISSUERS"
+  "validIssuers": "VALID_ISSUERS",
+  "SALESFORCE_CLIENT_KEY": "SALESFORCE_CLIENT_KEY"
 }

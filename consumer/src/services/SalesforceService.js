@@ -3,9 +3,7 @@
  */
 
 import config from 'config';
-import fs from 'fs';
 import Joi from 'joi';
-import path from 'path';
 import jwt from 'jsonwebtoken';
 import superagent from 'superagent';
 import superagentPromise from 'superagent-promise';
@@ -14,7 +12,7 @@ import {logAndValidate, log} from '../common/decorators';
 const loginBaseUrl = config.salesforce.audience || 'https://login.salesforce.com';
 const request = superagentPromise(superagent, Promise);
 // we are using dummy private key to fail safe when key is not provided in env
-let privateKey = process.env.SALESFORCE_CLIENT_KEY || 'privateKey'
+let privateKey = config.SALESFORCE_CLIENT_KEY || 'privateKey'
 privateKey = privateKey.replace(/\\n/g, "\n")
 
 const createObjectSchema = {
