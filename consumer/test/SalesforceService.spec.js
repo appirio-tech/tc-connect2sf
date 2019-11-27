@@ -4,6 +4,7 @@
 
 import nock from 'nock';
 import config from 'config';
+import jwt from 'jsonwebtoken';
 import SalesforceService from '../src/services/SalesforceService';
 import './setup';
 
@@ -24,6 +25,7 @@ describe('SalesforceService', () => {
       authorization: `Bearer ${accessToken}`,
     },
   };
+  const jwtSignSpy = sinon.stub(jwt, 'sign', () => ('fake token'));
 
   afterEach(() => {
     nock.cleanAll();
@@ -35,6 +37,7 @@ describe('SalesforceService', () => {
         .post('/services/oauth2/token')
         .reply(200, authenticateResponse);
       const result = await SalesforceService.authenticate();
+      jwtSignSpy.should.have.been.calledOnce;
       expect(result).to.deep.equal({
         accessToken: authenticateResponse.access_token,
         instanceUrl: authenticateResponse.instance_url,
