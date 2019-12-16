@@ -52,8 +52,13 @@ const getProject = (projectId) => {
  *
  * @return {Promise}          promise resolved to the updated project
  */
-const activateProject = (projectId) => (
-  M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
+const activateProject = (projectId) => {
+  console.log(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
+  console.log(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
+  console.log(`AUTH0_URL: ${config.AUTH0_URL}`);
+  console.log(`AUTH0_AUDIENCE: ${config.AUTH0_AUDIENCE}`);
+  console.log(`AUTH0_PROXY_SERVER_URL: ${config.AUTH0_PROXY_SERVER_URL}`);
+  return M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
     .then((token) => (
       request
         .patch(`${config.projectApi.url}/projects/${projectId}`)
@@ -82,7 +87,7 @@ const activateProject = (projectId) => (
       err.message = 'Error generating m2m token: ' + err.message;
       throw err;
     })
-);
+  };
 
 module.exports = {
   getProject,
