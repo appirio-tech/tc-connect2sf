@@ -44,7 +44,6 @@ class ConsumerService {
     if (!member) {
       logger.info('Project Members:');
       logger.info(project.members);
-      console.log(project.members);
       throw new UnprocessableError('Cannot find primary customer');
     }
     return Promise.all([
