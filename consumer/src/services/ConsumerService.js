@@ -9,7 +9,6 @@ import IdentityService from './IdentityService';
 import SalesforceService from './SalesforceService';
 import {UnprocessableError} from '../common/errors';
 
-const memberRole = 'customer';
 const duplicateRecordRegex = /TC_Connect_Project_Id__c duplicates value on record/;
 
 const projectCreatedSchema = Joi.object().keys({
@@ -40,18 +39,15 @@ class ConsumerService {
   @log(['project'])
   @validate(['logger','project'], projectCreatedSchema)
   processProjectCreated(logger, project) {
-    const member = _.find(project.members, {role: memberRole, isPrimary: true});
-    if (!member) {
-      logger.info('Project Members:');
-      logger.info(project.members);
-      throw new UnprocessableError('Cannot find primary customer');
-    }
+    logger.info(`Project Created By: ${project.createdBy}`);
     return Promise.all([
-      IdentityService.getUser(member.userId),
+      IdentityService.getUser(project.createdBy),
       SalesforceService.authenticate(),
     ]).then((responses) => {
       const user = responses[0];
       project.createdByEmail = user.email;
+      project.createdByFirstName = user.firstName;
+      project.createdByLastName = user.lastName;
       const { accessToken, instanceUrl } = responses[1];
       const leadData = {
         Type__c: 'connect.project.created',
@@ -80,7 +76,6 @@ class ConsumerService {
   @log(['projectEvent'])
   @validate(['logger', 'projectEvent'], projectUpdatedSchema)
   processProjectUpdated(logger, projectEvent) {
-    logger.debug(projectEvent)
     delete projectEvent.original.template;
     delete projectEvent.updated.template;
     var project = projectEvent.original;
@@ -93,6 +88,8 @@ class ConsumerService {
       const user = responses[0];
       const { accessToken, instanceUrl } = responses[1];
       projectEvent.original.createdByEmail = user.email;
+      projectEvent.original.createdByFirstName = user.firstName;
+      projectEvent.original.createdByLastName = user.lastName;
 
       const leadData = {
         Type__c: 'connect.project.updated',
