@@ -88,6 +88,8 @@ class ConsumerService {
       const user = responses[0];
       const { accessToken, instanceUrl } = responses[1];
       projectEvent.original.createdByEmail = user.email;
+      projectEvent.original.createdByFirstName = user.firstName;
+      projectEvent.original.createdByLastName = user.lastName;
 
       const leadData = {
         Type__c: 'connect.project.updated',

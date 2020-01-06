@@ -51,14 +51,12 @@ describe('ConsumerService', () => {
         isPrimary: true,
       },
     ],
-    createdBy: userId,
-    createdByEmail : "jd@example.com"
+    createdBy: userId
   };
   const projectUpdatePaylod = {
     original: {
       id: 1,
-      status: 'in_review',
-      createdByEmail : "jd@example.com"
+      status: 'in_review'
     },
     updated: {
       id: 1,
@@ -85,7 +83,12 @@ describe('ConsumerService', () => {
     it('should process project successfully', async() => {
       const expectedLead = {
         Type__c: 'connect.project.created',
-        Json__c: JSON.stringify(project)
+        Json__c: JSON.stringify({
+          ...project,
+          createdByEmail : user.email,
+          createdByFirstName: user.firstName,
+          createdByLastName: user.lastName
+        })
       };
 
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
@@ -98,9 +101,19 @@ describe('ConsumerService', () => {
 
     it('should NOT throw any error even if primary customer is not found', async() => {
       const projectWihoutMembers = {
-        id: 1,
-        members: [],
+        ...project,
+        members : []
       };
+      const expectedLead = {
+        Type__c: 'connect.project.created',
+        Json__c: JSON.stringify({
+          ...projectWihoutMembers,
+          createdByEmail : user.email,
+          createdByFirstName: user.firstName,
+          createdByLastName: user.lastName
+        })
+      };
+
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
 
       await ConsumerService.processProjectCreated(logger, projectWihoutMembers);
@@ -127,7 +140,15 @@ describe('ConsumerService', () => {
       const memberId = 'member-id';
       const expectedLead = {
         Type__c: 'connect.project.updated',
-        Json__c: JSON.stringify(projectUpdatePaylod)
+        Json__c: JSON.stringify({
+          original: {
+            ...projectUpdatePaylod.original,
+            createdByEmail : user.email,
+            createdByFirstName: user.firstName,
+            createdByLastName: user.lastName
+          },
+          updated: projectUpdatePaylod.updated
+        })
       };
       const createObjectStub = sandbox.stub(SalesforceService,'createObject', async() => {});
 
