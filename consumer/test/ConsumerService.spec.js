@@ -51,6 +51,7 @@ describe('ConsumerService', () => {
         isPrimary: true,
       },
     ],
+    createdBy: userId,
     createdByEmail : "jd@example.com"
   };
   const projectUpdatePaylod = {
