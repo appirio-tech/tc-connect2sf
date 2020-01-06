@@ -51,13 +51,12 @@ describe('ConsumerService', () => {
         isPrimary: true,
       },
     ],
-    createdByEmail : "jd@example.com"
+    createdBy: userId
   };
   const projectUpdatePaylod = {
     original: {
       id: 1,
-      status: 'in_review',
-      createdByEmail : "jd@example.com"
+      status: 'in_review'
     },
     updated: {
       id: 1,
@@ -84,7 +83,12 @@ describe('ConsumerService', () => {
     it('should process project successfully', async() => {
       const expectedLead = {
         Type__c: 'connect.project.created',
-        Json__c: JSON.stringify(project)
+        Json__c: JSON.stringify({
+          ...project,
+          createdByEmail : user.email,
+          createdByFirstName: user.firstName,
+          createdByLastName: user.lastName
+        })
       };
 
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
@@ -95,19 +99,27 @@ describe('ConsumerService', () => {
       createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
 
-    it('should throw UnprocessableError primary customer is not found', async() => {
+    it('should NOT throw any error even if primary customer is not found', async() => {
       const projectWihoutMembers = {
-        id: 1,
-        members: [],
+        ...project,
+        members : []
       };
-      try {
-        ConsumerService.processProjectCreated(logger, projectWihoutMembers);
-        sinon.fail('Should be rejected');
-      } catch(err) {
-        expect(err).to.exist
-          .and.be.instanceof(UnprocessableError)
-          .and.have.property('message').and.match(/Cannot find primary customer/);
-      }
+      const expectedLead = {
+        Type__c: 'connect.project.created',
+        Json__c: JSON.stringify({
+          ...projectWihoutMembers,
+          createdByEmail : user.email,
+          createdByFirstName: user.firstName,
+          createdByLastName: user.lastName
+        })
+      };
+
+      const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
+
+      await ConsumerService.processProjectCreated(logger, projectWihoutMembers);
+      getUserStub.should.have.been.calledWith(userId);
+      authenticateStub.should.have.been.called;
+      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
 
     it('should rethrow Error from createObject if error is not duplicate', async() => {
@@ -128,7 +140,15 @@ describe('ConsumerService', () => {
       const memberId = 'member-id';
       const expectedLead = {
         Type__c: 'connect.project.updated',
-        Json__c: JSON.stringify(projectUpdatePaylod)
+        Json__c: JSON.stringify({
+          original: {
+            ...projectUpdatePaylod.original,
+            createdByEmail : user.email,
+            createdByFirstName: user.firstName,
+            createdByLastName: user.lastName
+          },
+          updated: projectUpdatePaylod.updated
+        })
       };
       const createObjectStub = sandbox.stub(SalesforceService,'createObject', async() => {});
 
