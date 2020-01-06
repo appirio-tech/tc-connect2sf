@@ -95,19 +95,17 @@ describe('ConsumerService', () => {
       createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
 
-    it('should throw UnprocessableError primary customer is not found', async() => {
+    it('should NOT throw any error even if primary customer is not found', async() => {
       const projectWihoutMembers = {
         id: 1,
         members: [],
       };
-      try {
-        ConsumerService.processProjectCreated(logger, projectWihoutMembers);
-        sinon.fail('Should be rejected');
-      } catch(err) {
-        expect(err).to.exist
-          .and.be.instanceof(UnprocessableError)
-          .and.have.property('message').and.match(/Cannot find primary customer/);
-      }
+      const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
+
+      await ConsumerService.processProjectCreated(logger, projectWihoutMembers);
+      getUserStub.should.have.been.calledWith(userId);
+      authenticateStub.should.have.been.called;
+      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
 
     it('should rethrow Error from createObject if error is not duplicate', async() => {
