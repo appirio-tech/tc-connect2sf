@@ -94,7 +94,7 @@ workflows:
             - test
           filters:
             branches:
-              only: ['dev', 'hotfix/skip-user-validation-for-project-created-event']
+              only: ['dev']
       - deployProd:
           context : org-global
           requires:
