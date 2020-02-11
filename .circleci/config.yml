@@ -94,7 +94,7 @@ workflows:
             - test
           filters:
             branches:
-              only: ['dev']
+              only: ['dev', 'feature/opty_lead_status_sync_with_project']
       - deployProd:
           context : org-global
           requires:
