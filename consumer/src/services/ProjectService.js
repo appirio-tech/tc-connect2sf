@@ -52,7 +52,7 @@ const getProject = (projectId) => {
  *
  * @return {Promise}          promise resolved to the updated project
  */
-const activateProject = (projectId) => {
+const updateProjectStatus = (projectId, status='active') => {
   console.log(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
   console.log(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
   console.log(`AUTH0_URL: ${config.AUTH0_URL}`);
@@ -64,7 +64,7 @@ const activateProject = (projectId) => {
         .patch(`${config.projectApi.url}/projects/${projectId}`)
         .set('accept', 'application/json')
         .set('Authorization', `Bearer ${token}`)
-        .send({ param : { status : 'active' } })
+        .send({ param : { status } })
         .then((res) => {
           if (!_.get(res, 'body.result.success')) {
             throw new Error(`Failed to activate project with id: ${projectId}`);
@@ -91,5 +91,5 @@ const activateProject = (projectId) => {
 
 module.exports = {
   getProject,
-  activateProject
+  updateProjectStatus
 };

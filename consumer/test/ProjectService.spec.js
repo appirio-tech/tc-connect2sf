@@ -93,7 +93,7 @@ describe('ProjectService', () => {
         })
         .patch('/projects/1234')
         .reply(200, getProjectResponse);
-      const user = await ProjectService.activateProject(1234);
+      const user = await ProjectService.updateProjectStatus(1234);
       expect(user).to.deep.equal(getProjectResponse.result.content);
       fakeHttp.done();
     });
