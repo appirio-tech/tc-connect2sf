@@ -45,10 +45,13 @@ export function consumeMessage(message) {
     // Move to reviewed status
     statusToBe = 'reviewed'
   }
-  debug('updated', updated);
-  const projectId = _.get(updated, 'TC_Connect_Project_ID__c');
-  debug(`Updating status to ${statusToBe} project with id ${projectId}`);
+  let projectId = _.get(updated, 'TC_Connect_Project_ID__c');
+  if (!projectId) {
+    projectId = _.get(updated, 'TC_Connect_Project_Id__c');
+  }
+  debug(`Status to be updated: ${statusToBe} for project with id ${projectId}`);
   if (statusToBe && projectId) {
+    debug(`Updating status to ${statusToBe} project with id ${projectId}`);
     ProjectService.updateProjectStatus(projectId, statusToBe);
   }
 }
