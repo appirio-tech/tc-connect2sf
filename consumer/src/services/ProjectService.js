@@ -26,13 +26,13 @@ const getProject = (projectId) => {
         .set('accept', 'application/json')
         .set('authorization', `Bearer ${token}`)
         .then((res) => {
-          if (!_.get(res, 'body.result.success')) {
+          if (res.status !== 200) {
             throw new Error(`Failed to get project details of project id: ${projectId}`);
           }
-          const project = _.get(res, 'body.result.content');
+          const project = _.get(res, 'body');
           return project;
         }).catch((err) => {
-          const errorDetails = _.get(err, 'response.body.result.content.message');
+          const errorDetails = _.get(err, 'response.body');
           throw new Error(
             `Failed to get project details of project id: ${projectId}.` +
             (errorDetails ? ' Server response: ' + errorDetails : '')
@@ -64,19 +64,19 @@ const updateProjectStatus = (projectId, status='active') => {
         .patch(`${config.projectApi.url}/projects/${projectId}`)
         .set('accept', 'application/json')
         .set('Authorization', `Bearer ${token}`)
-        .send({ param : { status } })
+        .send({ status })
         .then((res) => {
-          if (!_.get(res, 'body.result.success')) {
+          if (res.status !== 200) {
             throw new Error(`Failed to activate project with id: ${projectId}`);
           }
-          const project = _.get(res, 'body.result.content');
+          const project = _.get(res, 'body');
           if (project) {
             console.log(`Successfully activated the project with id ${projectId}`);
           }
           return project;
         }).catch((err) => {
           console.log(err);
-          const errorDetails = _.get(err, 'response.body.result.content.message');
+          const errorDetails = _.get(err, 'response.body');
           throw new Error(
             `Failed to update project with id: ${projectId}.` +
             (errorDetails ? ' Server response: ' + errorDetails : '')
