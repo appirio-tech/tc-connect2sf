@@ -26,6 +26,7 @@ export function consumeMessage(message) {
   const original = JSON.parse(_.get(payload, 'Original__c'));
   const updated = JSON.parse(_.get(payload, 'Updated__c'));
   let statusToBe = null;
+  let statusChangeReason = null;
   if (eventType === 'billingAccount.updated') {
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
@@ -38,9 +39,11 @@ export function consumeMessage(message) {
   } else if (eventType === 'opportunity.lost') {
     // Cancel connect project
     statusToBe = 'cancelled'
+    statusChangeReason = _.get(updated, 'Loss_Description__c', 'Opportunity Lost');
   } else if (eventType === 'lead.disqualified') {
     // Cancel the project
     statusToBe = 'cancelled'
+    statusChangeReason = _.get(updated, 'Loss_Description__c', 'Lead Disqualified');
   } else if (eventType === 'opportunity.create') {
     // Move to reviewed status
     statusToBe = 'reviewed'
@@ -52,7 +55,7 @@ export function consumeMessage(message) {
   debug(`Status to be updated: ${statusToBe} for project with id ${projectId}`);
   if (statusToBe && projectId) {
     debug(`Updating status to ${statusToBe} project with id ${projectId}`);
-    ProjectService.updateProjectStatus(projectId, statusToBe);
+    ProjectService.updateProjectStatus(projectId, statusToBe, statusChangeReason);
   }
 }
 
