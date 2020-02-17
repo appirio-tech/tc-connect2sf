@@ -6,6 +6,8 @@ const request = require('superagent');
 const config = require('config');
 const _ = require('lodash');
 
+const debug = require('debug')('app:project-service');
+
 /**
  * Get project details
  *
@@ -14,11 +16,8 @@ const _ = require('lodash');
  * @return {Promise}          promise resolved to project details
  */
 const getProject = (projectId) => {
-  console.log(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
-  console.log(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
-  console.log(`AUTH0_URL: ${config.AUTH0_URL}`);
-  console.log(`AUTH0_AUDIENCE: ${config.AUTH0_AUDIENCE}`);
-  console.log(`AUTH0_PROXY_SERVER_URL: ${config.AUTH0_PROXY_SERVER_URL}`);
+  debug(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
+  debug(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
   return M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
     .then((token) => (
       request
@@ -53,29 +52,30 @@ const getProject = (projectId) => {
  * @return {Promise}          promise resolved to the updated project
  */
 const updateProjectStatus = (projectId, status='active', changeReason) => {
-  console.log(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
-  console.log(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
-  console.log(`AUTH0_URL: ${config.AUTH0_URL}`);
-  console.log(`AUTH0_AUDIENCE: ${config.AUTH0_AUDIENCE}`);
-  console.log(`AUTH0_PROXY_SERVER_URL: ${config.AUTH0_PROXY_SERVER_URL}`);
+  debug(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
+  debug(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
+  const updatedProject = { status };
+  if (changeReason) {
+    updatedProject.cancelReason = changeReason;
+  }
   return M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
     .then((token) => (
       request
         .patch(`${config.projectApi.url}/projects/${projectId}`)
         .set('accept', 'application/json')
         .set('Authorization', `Bearer ${token}`)
-        .send({ status, cancelReason: changeReason })
+        .send(updatedProject)
         .then((res) => {
           if (res.status !== 200) {
-            throw new Error(`Failed to activate project with id: ${projectId}`);
+            throw new Error(`Failed to update project with id: ${projectId}`);
           }
           const project = _.get(res, 'body');
           if (project) {
-            console.log(`Successfully activated the project with id ${projectId}`);
+            debug(`Successfully updated the project ${projectId} with status ${status}`);
           }
           return project;
         }).catch((err) => {
-          console.log(err);
+          debug(err);
           const errorDetails = _.get(err, 'response.body');
           throw new Error(
             `Failed to update project with id: ${projectId}.` +
