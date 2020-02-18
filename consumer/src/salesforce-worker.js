@@ -43,7 +43,7 @@ export function consumeMessage(message) {
   } else if (eventType === 'lead.disqualified') {
     // Cancel the project
     statusToBe = 'cancelled'
-    statusChangeReason = _.get(updated, 'Loss_Description__c', 'Lead Disqualified');
+    statusChangeReason = _.get(updated, 'Disqualified_Reason__c', 'Lead Disqualified');
   } else if (eventType === 'opportunity.create') {
     // Move to reviewed status
     statusToBe = 'reviewed'
