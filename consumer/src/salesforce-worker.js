@@ -47,6 +47,9 @@ export function consumeMessage(message) {
   } else if (eventType === 'opportunity.create') {
     // Move to reviewed status
     statusToBe = 'reviewed'
+  } else if (eventType === 'lead.qualified') {
+    // Move to reviewed status
+    statusToBe = 'reviewed'
   }
   let projectId = _.get(updated, 'TC_Connect_Project_ID__c');
   if (!projectId) {
