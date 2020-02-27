@@ -14,9 +14,9 @@ describe('salesforce-worker', () => {
     }
   }
   describe('consumeMessage', () => {
-    let activateProjectSpy;
+    let updateProjectStatusSpy;
     beforeEach(() => {
-        activateProjectSpy = ProjectService.activateProject = sinon.spy();
+        updateProjectStatusSpy = ProjectService.updateProjectStatus = sinon.spy();
     });
 
     /**
@@ -29,7 +29,7 @@ describe('salesforce-worker', () => {
 
     it('should consume and active project successfully', (done) => {
       invokeConsume(done);
-      activateProjectSpy.should.have.been.calledWith(1234);
+      updateProjectStatusSpy.should.have.been.calledWith(1234);
       done();
     });
   });
