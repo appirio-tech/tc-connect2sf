@@ -23,20 +23,42 @@ export function consumeMessage(message) {
   debug('Got Connect_SFDC__e', message);
   const payload = _.get(message, 'payload');
   const eventType = _.get(payload, 'Type__c');
+  const original = JSON.parse(_.get(payload, 'Original__c'));
+  const updated = JSON.parse(_.get(payload, 'Updated__c'));
+  let statusToBe = null;
+  let statusChangeReason = null;
   if (eventType === 'billingAccount.updated') {
-    const original = JSON.parse(_.get(payload, 'Original__c'));
-    const updated = JSON.parse(_.get(payload, 'Updated__c'));
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
     debug(`${oldStatus} === ${updatedStatus}`);
     if (oldStatus !== updatedStatus && updatedStatus === true) {
-      const projectId = _.get(updated, 'TC_Connect_Project_ID__c');
-      debug(`Activating project with id ${projectId}`);
-      // TODO retrieve project id from the payload
-      if (projectId) {
-        ProjectService.activateProject(projectId);
-      }
+      statusToBe = 'active'
     }
+  } else if (eventType === 'opportunity.won') {
+    // TODO
+  } else if (eventType === 'opportunity.lost') {
+    // Cancel connect project
+    statusToBe = 'cancelled'
+    statusChangeReason = _.get(updated, 'Loss_Description__c', 'Opportunity Lost');
+  } else if (eventType === 'lead.disqualified') {
+    // Cancel the project
+    statusToBe = 'cancelled'
+    statusChangeReason = _.get(updated, 'Disqualified_Reason__c', 'Lead Disqualified');
+  } else if (eventType === 'opportunity.create') {
+    // Move to reviewed status
+    statusToBe = 'reviewed'
+  } else if (eventType === 'lead.qualified') {
+    // Move to reviewed status
+    statusToBe = 'reviewed'
+  }
+  let projectId = _.get(updated, 'TC_Connect_Project_ID__c');
+  if (!projectId) {
+    projectId = _.get(updated, 'TC_Connect_Project_Id__c');
+  }
+  debug(`Status to be updated: ${statusToBe} for project with id ${projectId}`);
+  if (statusToBe && projectId) {
+    debug(`Updating status to ${statusToBe} project with id ${projectId}`);
+    ProjectService.updateProjectStatus(projectId, statusToBe, statusChangeReason);
   }
 }
 

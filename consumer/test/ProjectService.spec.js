@@ -31,22 +31,13 @@ const authenticateResponse = {
 };
 
 const getProjectResponse = {
-  id: '-88f3803:1557f8485b0:-b0a',
-  result: {
-    success: true,
-    status: 200,
-    metadata: null,
-    content: {
-      id: '265522',
-      modifiedBy: null,
-      modifiedAt: '2016-06-01T16:57:47.000Z',
-      createdBy: null,
-      createdAt: '2002-02-06T18:06:40.000Z',
-      status: 'active',
-      name: 'Test Project',
-    },
-  },
-  version: 'v4',
+    id: '265522',
+    modifiedBy: null,
+    modifiedAt: '2016-06-01T16:57:47.000Z',
+    createdBy: null,
+    createdAt: '2002-02-06T18:06:40.000Z',
+    status: 'active',
+    name: 'Test Project',
 };
 
 
@@ -80,8 +71,8 @@ describe('ProjectService', () => {
         })
         .get('/projects/1234')
         .reply(200, getProjectResponse);
-      const user = await ProjectService.getProject(1234);
-      expect(user).to.deep.equal(getProjectResponse.result.content);
+      const project = await ProjectService.getProject(1234);
+      expect(project).to.deep.equal(getProjectResponse);
       fakeHttp.done();
     });
 
@@ -93,8 +84,9 @@ describe('ProjectService', () => {
         })
         .patch('/projects/1234')
         .reply(200, getProjectResponse);
-      const user = await ProjectService.activateProject(1234);
-      expect(user).to.deep.equal(getProjectResponse.result.content);
+      const project = await ProjectService.updateProjectStatus(1234);
+      console.log(project, 'project')
+      expect(project).to.deep.equal(getProjectResponse);
       fakeHttp.done();
     });
   });
