@@ -15,7 +15,7 @@ class SalesforceEventService {
    * @param {Object} event event
    * @returns {Object} sample response
    */
-  @log(['logger', 'event'])
+  @log(['event'])
   postEvent(logger, event) { // eslint-disable-line no-unused-vars
     logger.debug(event, 'event');
     const promises = [];
@@ -26,9 +26,9 @@ class SalesforceEventService {
     return Promise.all(promises).then((responses) => {
       if (promises.length > 1) {
         const user = responses[0];
-        project.createdByEmail = user.email;
-        project.createdByFirstName = user.firstName;
-        project.createdByLastName = user.lastName;
+        event.payload.createdByEmail = user.email;
+        event.payload.createdByFirstName = user.firstName;
+        event.payload.createdByLastName = user.lastName;
       }
       const { accessToken, instanceUrl } = promises.length > 1 ? responses[1] : responses[0];
       const evt = {
