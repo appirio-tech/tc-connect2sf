@@ -25,11 +25,11 @@ class SalesforceEventService {
     promises.push(SalesforceService.authenticate());
     return Promise.all(promises).then((responses) => {
       const { accessToken, instanceUrl } = responses[0];
-      const event = {
+      const evt = {
         Type__c: event.topic,
         Json__c: JSON.stringify(event.payload)
       };
-      return SalesforceService.createObject('Connect_Event__c', event, accessToken, instanceUrl)
+      return SalesforceService.createObject('Connect_Event__c', evt, accessToken, instanceUrl)
       .catch( (e) => {
         throw e;
       })
