@@ -25,7 +25,7 @@
       "command": "babel-node src/api"
     },
     "startWorker": {
-      "command": "babel-node src/worker"
+      "command": "babel-node src/kafka-consumer"
     },
     "startSalesforceConsumers": {
       "command": "babel-node src/salesforce-worker"
@@ -59,9 +59,11 @@
     "jsonwebtoken": "^7.1.7",
     "lodash": "^4.14.2",
     "node-cron": "^1.1.3",
+    "bluebird": "3.5.1",
     "superagent": "^5.1.1",
     "superagent-promise": "^1.1.0",
-    "tc-core-library-js": "appirio-tech/tc-core-library-js.git",
+    "no-kafka": "^3.2.10",
+    "tc-core-library-j": "appirio-tech/tc-core-library-js.git",
     "topcoder-healthcheck-dropin": "^1.0.3",
     "winston": "^2.2.0"
   },
