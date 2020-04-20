@@ -24,7 +24,13 @@ class SalesforceEventService {
     }
     promises.push(SalesforceService.authenticate());
     return Promise.all(promises).then((responses) => {
-      const { accessToken, instanceUrl } = responses[0];
+      if (promises.length > 1) {
+        const user = responses[0];
+        project.createdByEmail = user.email;
+        project.createdByFirstName = user.firstName;
+        project.createdByLastName = user.lastName;
+      }
+      const { accessToken, instanceUrl } = promises.length > 1 ? responses[1] : responses[0];
       const evt = {
         Type__c: event.topic,
         Json__c: JSON.stringify(event.payload)
