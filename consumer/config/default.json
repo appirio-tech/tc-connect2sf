@@ -26,6 +26,16 @@
       {
         "handleProjectCreated": {
           "resource": "project"
+        },
+        "handleProjectMemberAdded": {
+          "resource": "project.member"
+        }
+      }
+    ],
+    "project.action.delete": [
+      {
+        "handleProjectMemberRemoved": {
+          "resource": "project.member"
         }
       }
     ],

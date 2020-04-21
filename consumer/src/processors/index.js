@@ -5,6 +5,7 @@
 
 const ProjectCreatedHandler = require('./project/ProjectCreatedHandler');
 const ProjectUpdatedHandler = require('./project/ProjectUpdatedHandler');
+const ProjectMemberHandler = require('./projectMember/ProjectMemberHandler')
 const UserCreatedHandler = require('./user/UserCreatedHandler');
 const UserUpdatedHandler = require('./user/UserUpdatedHandler');
 
@@ -14,4 +15,6 @@ module.exports = {
   handleProjectUpdated: ProjectUpdatedHandler.handle,
   handleUserCreated: UserCreatedHandler.handle,
   handleUserUpdated: UserUpdatedHandler.handle,
+  handleProjectMemberAdded: ProjectMemberHandler.handleMemberEvent,
+  handleProjectMemberRemoved: ProjectMemberHandler.handleMemberEvent,
 };
