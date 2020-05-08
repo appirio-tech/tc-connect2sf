@@ -44,8 +44,8 @@ export function consumeMessage(message) {
     // Move to reviewed status
     statusToBe = 'reviewed';
   } else if (eventType === 'lead.status.update') {
-    const oldStatus = _.get(original, 'Status__c');
-    const updatedStatus = _.get(updated, 'Status__c');
+    const oldStatus = _.get(original, 'Status');
+    const updatedStatus = _.get(updated, 'Status');
     if (oldStatus !== updatedStatus) {
       if (updatedStatus === 'Nurture') {
         const nurtureReason = _.get(updated, 'Nurture_Reason__c');
