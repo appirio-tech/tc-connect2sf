@@ -32,24 +32,39 @@ export function consumeMessage(message) {
     const updatedStatus = _.get(updated, 'Active__c');
     debug(`${oldStatus} === ${updatedStatus}`);
     if (oldStatus !== updatedStatus && updatedStatus === true) {
-      statusToBe = 'active'
+      statusToBe = 'active';
     }
   } else if (eventType === 'opportunity.won') {
     // TODO
   } else if (eventType === 'opportunity.lost') {
     // Cancel connect project
-    statusToBe = 'cancelled'
+    statusToBe = 'cancelled';
     statusChangeReason = _.get(updated, 'Loss_Description__c', 'Opportunity Lost');
-  } else if (eventType === 'lead.disqualified') {
-    // Cancel the project
-    statusToBe = 'cancelled'
-    statusChangeReason = _.get(updated, 'Disqualified_Reason__c', 'Lead Disqualified');
   } else if (eventType === 'opportunity.create') {
     // Move to reviewed status
-    statusToBe = 'reviewed'
-  } else if (eventType === 'lead.qualified') {
-    // Move to reviewed status
-    statusToBe = 'reviewed'
+    statusToBe = 'reviewed';
+  } else if (eventType === 'lead.status.update') {
+    const oldStatus = _.get(original, 'Status__c');
+    const updatedStatus = _.get(updated, 'Status__c');
+    if (oldStatus !== updatedStatus) {
+      if (updatedStatus === 'Nurture') {
+        const nurtureReason = _.get(updated, 'Nurture_Reason__c');
+        if (nurtureReason === 'BDR Rejected') {
+          // Move to paused status
+          statusToBe = 'paused';
+        }
+      } else if (updatedStatus === 'Disqualified') {
+        // Cancel the project
+        statusToBe = 'cancelled';
+        statusChangeReason = _.get(updated, 'Disqualified_Reason__c', 'Lead Disqualified');
+      } else if (updatedStatus === 'Qualified') {
+        // Move to reviewed status
+        statusToBe = 'reviewed';
+      } else if (updatedStatus === 'Working') {
+        // Move to in_review status
+        statusToBe = 'in_review';
+      }
+    }
   }
   let projectId = _.get(updated, 'TC_Connect_Project_ID__c');
   if (!projectId) {
