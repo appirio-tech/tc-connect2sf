@@ -28,6 +28,12 @@
       "connect2sf": "QUEUE_CONNECT2SF"
     }
   },
+  "kafka": {
+    "KAFKA_GROUP_ID": "KAFKA_GROUP_ID",
+    "KAFKA_URL": "KAFKA_URL",
+    "KAFKA_CLIENT_CERT": "KAFKA_CLIENT_CERT",
+    "KAFKA_CLIENT_CERT_KEY": "KAFKA_CLIENT_CERT_KEY"
+  },
   "apiVersion": "API_VERSION",
   "port": "PORT",
   "AUTH0_CLIENT_ID": "AUTH0_CLIENT_ID",

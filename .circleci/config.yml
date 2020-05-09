@@ -94,7 +94,7 @@ workflows:
             - test
           filters:
             branches:
-              only: ['dev']
+              only: ['dev', 'feature/kafka_event_listener']
       - deployProd:
           context : org-global
           requires:
