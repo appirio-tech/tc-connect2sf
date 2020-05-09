@@ -9,7 +9,9 @@ import cron from 'node-cron';
 import logger from './common/logger';
 import ConsumerService from './services/ConsumerService';
 import { EVENT } from '../config/constants';
+
 const tcCoreLibAuth = require('tc-core-library-js').auth;
+
 global.M2m = tcCoreLibAuth.m2m(config);
 
 const debug = require('debug')('app:worker');
@@ -19,31 +21,31 @@ const FETCH_LIMIT = 10;
 let connection;
 let scheduledConnection;
 process.once('SIGINT', () => {
-  debug('Received SIGINT...closing connection...')
+  debug('Received SIGINT...closing connection...');
   try {
     connection.close();
-  } catch (ignore) { // eslint-ignore-line
-    logger.logFullError(ignore)
+  } catch (ignore) {
+    logger.logFullError(ignore);
   }
   try {
     scheduledConnection.close();
-  } catch (ignore) { // eslint-ignore-line
-    logger.logFullError(ignore)
+  } catch (ignore) {
+    logger.logFullError(ignore);
   }
   process.exit();
 });
 
 let EVENT_HANDLERS = {
   [EVENT.ROUTING_KEY.PROJECT_DRAFT_CREATED]: ConsumerService.processProjectCreated,
-  [EVENT.ROUTING_KEY.PROJECT_UPDATED]: ConsumerService.processProjectUpdated
-}
+  [EVENT.ROUTING_KEY.PROJECT_UPDATED]: ConsumerService.processProjectUpdated,
+};
 
 function close() {
-  console.log('closing self after processing messages...')
+  console.log('closing self after processing messages...');
   try {
     setTimeout(connection.close.bind(connection), 30000);
   } catch (ignore) { // eslint-ignore-line
-    logger.logFullError(ignore)
+    logger.logFullError(ignore);
   }
 }
 
@@ -59,7 +61,7 @@ function processMessage(msg) {
   return new Promise((resolve, reject) => {
     if (!msg) {
       reject(new Error('Empty message. Ignoring'));
-      return;
+      // return;
     }
     debug(`Consuming message in \n${msg.content}`);
     const key = _.get(msg, 'fields.routingKey');
@@ -72,30 +74,27 @@ function processMessage(msg) {
       if (!_.isFunction(handler)) {
         logger.error(`Unknown message type: ${key}, NACKing... `);
         reject(new Error(`Unknown message type: ${key}`));
-        return;
+        // return;
       }
       data = JSON.parse(msg.content.toString());
     } catch (ignore) {
       logger.verbose(ignore);
       logger.error('Invalid message. Ignoring');
       resolve('Invalid message. Ignoring');
-      return;
+      // return;
     }
-    return handler(logger, data).then(() => {
-      resolve(msg);
-      return;
-    })
+    return handler(logger, data).then(() => resolve(msg))
     .catch((e) => {
       // logger.logFullError(e, `Error processing message`);
       if (e.shouldAck) {
-        debug("Resolving for Unprocessable Error in handler...");
+        debug('Resolving for Unprocessable Error in handler...');
         resolve(msg);
       } else {
-        debug("Rejecting promise for error in msg processing...")
+        debug('Rejecting promise for error in msg processing...');
         reject(new Error('Error processing message'));
       }
     });
-  })
+  });
 }
 
 function assertExchangeQueues(channel, exchangeName, queue) {
@@ -104,7 +103,7 @@ function assertExchangeQueues(channel, exchangeName, queue) {
   const bindings = _.keys(EVENT_HANDLERS);
   const bindingPromises = _.map(bindings, rk =>
     channel.bindQueue(queue, exchangeName, rk));
-  debug('binding queue ' + queue + ' to exchange: ' + exchangeName);
+  debug(`binding queue ${queue} to exchange: ${exchangeName}`);
   return Promise.all(bindingPromises);
 }
 
@@ -113,7 +112,7 @@ export function consumeFailedMessage(connect2sfChannel, msg, counter) {
     return processMessage(
       msg
     ).then((responses) => {
-      console.log(responses)
+      console.log(responses);
       counter++;
       debug('Processed message');
       connect2sfChannel.ack(msg);
@@ -124,19 +123,18 @@ export function consumeFailedMessage(connect2sfChannel, msg, counter) {
       counter++;
       debug('Processed message with Error');
       connect2sfChannel.nack(msg);
-      logger.logFullError(e, `Unable to process one of the messages`);
+      logger.logFullError(e, 'Unable to process one of the messages');
       if (counter >= FETCH_LIMIT) {
         close();
       }
-    })
-  } else {
-    counter++;
-    debug('Processed Empty message');
-    if (counter >= FETCH_LIMIT) {
-      close();
-    }
-    return Promise.resolve('Processed Empty message');
+    });
   }
+  counter++;
+  debug('Processed Empty message');
+  if (counter >= FETCH_LIMIT) {
+    close();
+  }
+  return Promise.resolve('Processed Empty message');
 }
 
 /**
@@ -144,15 +142,15 @@ export function consumeFailedMessage(connect2sfChannel, msg, counter) {
  */
 export async function scheduleStart() {
   try {
-    console.log("Scheduled Worker Connecting to RabbitMQ: " + config.rabbitmqURL.substr(-5));
+    console.log(`Scheduled Worker Connecting to RabbitMQ: ${config.rabbitmqURL.substr(-5)}`);
     scheduledConnection = await amqp.connect(config.rabbitmqURL);
     scheduledConnection.on('error', (e) => {
-      logger.logFullError(e, `ERROR IN CONNECTION`);
-    })
+      logger.logFullError(e, 'ERROR IN CONNECTION');
+    });
     scheduledConnection.on('close', () => {
-      debug('Before closing connection...')
-    })
-    debug('created connection successfully with URL: ' + config.rabbitmqURL);
+      debug('Before closing connection...');
+    });
+    debug(`created connection successfully with URL: ${config.rabbitmqURL}`);
     const connect2sfChannel = await scheduledConnection.createConfirmChannel();
     debug('Channel created for consuming failed messages ...');
     connect2sfChannel.prefetch(FETCH_LIMIT);
@@ -162,20 +160,15 @@ export async function scheduleStart() {
       config.rabbitmq.queues.connect2sf
     ).then(() => {
       debug('Asserted all required exchanges and queues');
-      let counter = 0;
-      _.range(1, 11).forEach(() => {
-        return connect2sfChannel.get(config.rabbitmq.queues.connect2sf).
-        then((msg) => {
-          return consumeFailedMessage(connect2sfChannel, msg, counter);
-        }).catch(() => {
-          console.log('get failed to consume')
-        })
-      });
+      const counter = 0;
+      _.range(1, 11).forEach(() => connect2sfChannel.get(config.rabbitmq.queues.connect2sf)
+        .then((msg) => consumeFailedMessage(connect2sfChannel, msg, counter)).catch(() => {
+          console.log('get failed to consume');
+        }));
       scheduledConnection.close();
-    })
-    
+    });
   } catch (e) {
-    logger.logFullError(e, `Unable to connect to RabbitMQ`);
+    logger.logFullError(e, 'Unable to connect to RabbitMQ');
   }
 }
 
@@ -237,10 +230,10 @@ export async function consume(channel, exchangeName, queue, publishChannel) {
               key,
               new Buffer(msg.content.toString())
             );
-          } catch (e) {
+          } catch (e1) {
             // TODO decide if we want nack the original msg here
             // for now just ignoring the error in requeue
-            logger.logFullError(e, `Error in publising Exchange to ${exchangeName}`);
+            logger.logFullError(e1, `Error in publising Exchange to ${exchangeName}`);
           }
         }
       }
@@ -281,5 +274,5 @@ function start() {
 }
 
 if (!module.parent) {
-  start(); 
+  start();
 }

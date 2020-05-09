@@ -19,13 +19,14 @@ class IdentityService {
   authenticate() {
     return request
       .post(`${config.identityService.url}/v3/authorizations`)
-      .set('Content-Type', 'application/x-www-form-urlencoded') 
-      .send('clientId=' + config.identityService.clientId + '&secret=' + encodeURIComponent(config.identityService.clientSecret))
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .send(`clientId=${config.identityService.clientId}
+      &secret=${encodeURIComponent(config.identityService.clientSecret)}`)
       .end()
-      .then((res) => { 
-            var response = JSON.parse(res.text);
-            return response.result.content.token; 
-       });
+      .then((res) => {
+        const response = JSON.parse(res.text);
+        return response.result.content.token;
+      });
   }
 
   /**
@@ -36,21 +37,16 @@ class IdentityService {
    */
   @log(['userId', 'jwtToken'])
   getUser(userId, jwtToken) {
-    var call = (id, token) => {
-        return request
+    const call = (id, token) => request
             .get(`${config.identityService.url}/v3/users/${id}`)
             .set('Authorization', `Bearer ${token}`)
             .end()
             .then((res) => res.body.result.content);
-    }
 
     if (!jwtToken) {
-        return this.authenticate().then((token) => {
-            return call(userId, token);
-        });
-    } else {
-        return call(userId, jwtToken);
+      return this.authenticate().then((token) => call(userId, token));
     }
+    return call(userId, jwtToken);
   }
 }
 

@@ -3,18 +3,21 @@ import config from 'config';
 import faye from 'faye';
 import SalesforceService from './services/SalesforceService';
 import ProjectService from './services/ProjectService';
+import logger from './common/logger';
+
 const tcCoreLibAuth = require('tc-core-library-js').auth;
+
 global.M2m = tcCoreLibAuth.m2m(config);
 
 const debug = require('debug')('app:salesforce-worker');
 
-var client = null;
+let client = null;
 process.once('SIGINT', () => {
-  debug('Received SIGINT...closing connection...')
+  debug('Received SIGINT...closing connection...');
   try {
     client.disconnect();
   } catch (ignore) { // eslint-ignore-line
-    logger.logFullError(ignore)
+    logger.logFullError(ignore);
   }
   process.exit();
 });
@@ -78,14 +81,14 @@ export function consumeMessage(message) {
 }
 
 function start() {
-  debug(config.salesforce.audience, "Salesforce Audience");
+  debug(config.salesforce.audience, 'Salesforce Audience');
   SalesforceService.authenticate().then((authResp) => {
     const { accessToken, instanceUrl } = authResp;
-    client = new faye.Client(instanceUrl + '/cometd/44.0/', { timeout: 1 });
+    client = new faye.Client(`${instanceUrl}/cometd/44.0/`, { timeout: 1 });
     debug('CLient created...');
-    client.setHeader('Authorization', 'OAuth ' + accessToken);
+    client.setHeader('Authorization', `OAuth ${accessToken}`);
     const sub = client.subscribe('/event/Connect_SFDC__e', consumeMessage);
-    debug('Subscribed')
+    debug('Subscribed', sub);
   });
 }
 

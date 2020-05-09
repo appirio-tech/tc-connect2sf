@@ -9,8 +9,8 @@ import config from 'config';
 const transports = [];
 transports.push(new (winston.transports.Console)({ level: config.logLevel }));
 
-if(config.logFile) {
-    transports.push(new (winston.transports.File)({ level: config.logLevel, filename: config.logFile }));
+if (config.logFile) {
+  transports.push(new (winston.transports.File)({ level: config.logLevel, filename: config.logFile }));
 }
 
 const logger = new (winston.Logger)({ transports });
