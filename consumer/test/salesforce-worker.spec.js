@@ -2,29 +2,29 @@
  * Unit tests for worker
  */
 import { consumeMessage } from '../src/salesforce-worker';
-import ProjectService from '../src/services/ProjectService'
+import ProjectService from '../src/services/ProjectService';
 import './setup';
 
 describe('salesforce-worker', () => {
-  let sampleSalesforceEvent = {
+  const sampleSalesforceEvent = {
     payload: {
       Type__c: 'billingAccount.updated',
       Original__c: '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : false }',
-      Updated__c : '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : true }'
-    }
-  }
+      Updated__c: '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : true }',
+    },
+  };
   describe('consumeMessage', () => {
     let updateProjectStatusSpy;
     beforeEach(() => {
-        updateProjectStatusSpy = ProjectService.updateProjectStatus = sinon.spy();
+      updateProjectStatusSpy = ProjectService.updateProjectStatus = sinon.spy();
     });
 
     /**
      * Invoke the worker consume method using current parameters
      * @param done the mocha done function
      */
-    function invokeConsume(done) {
-        return consumeMessage(sampleSalesforceEvent)
+    function invokeConsume(done) { // eslint-disable-line
+      return consumeMessage(sampleSalesforceEvent);
     }
 
     it('should consume and active project successfully', (done) => {

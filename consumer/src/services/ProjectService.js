@@ -30,19 +30,20 @@ const getProject = (projectId) => {
           }
           const project = _.get(res, 'body');
           return project;
-        }).catch((err) => {
+        })
+        .catch((err) => {
           const errorDetails = _.get(err, 'response.body');
           throw new Error(
-            `Failed to get project details of project id: ${projectId}.` +
-            (errorDetails ? ' Server response: ' + errorDetails : '')
+            `Failed to get project details of project id: ${projectId}.${
+            errorDetails ? ` Server response: ${errorDetails}` : ''}`
           );
         })
     ))
     .catch((err) => {
-      err.message = 'Error generating m2m token: ' + err.message;
+      err.message = `Error generating m2m token: ${err.message}`;
       throw err;
-    })
-  };
+    });
+};
 
 /**
  * Activates the given project
@@ -51,7 +52,7 @@ const getProject = (projectId) => {
  *
  * @return {Promise}          promise resolved to the updated project
  */
-const updateProjectStatus = (projectId, status='active', changeReason) => {
+const updateProjectStatus = (projectId, status = 'active', changeReason) => {
   debug(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
   debug(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
   const updatedProject = { status };
@@ -74,22 +75,23 @@ const updateProjectStatus = (projectId, status='active', changeReason) => {
             debug(`Successfully updated the project ${projectId} with status ${status}`);
           }
           return project;
-        }).catch((err) => {
+        })
+        .catch((err) => {
           debug(err);
           const errorDetails = _.get(err, 'response.body');
           throw new Error(
-            `Failed to update project with id: ${projectId}.` +
-            (errorDetails ? ' Server response: ' + errorDetails : '')
+            `Failed to update project with id: ${projectId}.${
+            errorDetails ? ` Server response: ${errorDetails}` : ''}`
           );
         })
     ))
     .catch((err) => {
-      err.message = 'Error generating m2m token: ' + err.message;
+      err.message = `Error generating m2m token: ${err.message}`;
       throw err;
-    })
-  };
+    });
+};
 
 module.exports = {
   getProject,
-  updateProjectStatus
+  updateProjectStatus,
 };

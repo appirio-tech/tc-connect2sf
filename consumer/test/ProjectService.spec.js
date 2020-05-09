@@ -7,37 +7,14 @@ import config from 'config';
 import './setup';
 import ProjectService from '../src/services/ProjectService';
 
-
-const authenticateResponse = {
-  id: '-88f3803:1557f8485b0:-ae0',
-  result: {
-    content: {
-      createdAt: null,
-      createdBy: null,
-      externalToken: null,
-      id: '1110840181',
-      modifiedAt: null,
-      modifiedBy: null,
-      refreshToken: null,
-      target: '1',
-      token: 'THEJWTTOKEN',
-      zendeskJwt: null,
-    },
-    metadata: null,
-    status: 200,
-    success: true,
-  },
-  version: 'v3',
-};
-
 const getProjectResponse = {
-    id: '265522',
-    modifiedBy: null,
-    modifiedAt: '2016-06-01T16:57:47.000Z',
-    createdBy: null,
-    createdAt: '2002-02-06T18:06:40.000Z',
-    status: 'active',
-    name: 'Test Project',
+  id: '265522',
+  modifiedBy: null,
+  modifiedAt: '2016-06-01T16:57:47.000Z',
+  createdBy: null,
+  createdAt: '2002-02-06T18:06:40.000Z',
+  status: 'active',
+  name: 'Test Project',
 };
 
 
@@ -45,7 +22,7 @@ describe('ProjectService', () => {
 //   var m2mAuthSpy = ;
 
   beforeEach(() => {
-    M2m.getMachineToken = function() { return Promise.resolve('FAKE'); };
+    global.M2m.getMachineToken = () => Promise.resolve('FAKE');
   });
   afterEach(() => {
     nock.cleanAll();
@@ -54,7 +31,9 @@ describe('ProjectService', () => {
   describe('authenticate', () => {
     // it('should return token successfully', async() => {
     //   const fakeHttp = nock(config.identityService.url)
-    //     .post('/v3/authorizations', 'clientId=' + config.identityService.clientId + '&secret=' + encodeURIComponent(config.identityService.clientSecret))
+    //     .post('/v3/authorizations',
+    //     'clientId=' + config.identityService.clientId +
+    //     '&secret=' + encodeURIComponent(config.identityService.clientSecret))
     //     .reply(200, authenticateResponse);
     //   const token = await ProjectService.authenticate();
     //   expect(token).to.equal('THEJWTTOKEN');
@@ -64,11 +43,11 @@ describe('ProjectService', () => {
 
   describe('getProject', () => {
     it('should return a project successfully', async() => {
-        const fakeHttp = nock(config.projectApi.url, {
-            reqheaders: {
-            authorization: 'Bearer faketoken',
-            },
-        })
+      const fakeHttp = nock(config.projectApi.url, {
+        reqheaders: {
+          authorization: 'Bearer faketoken',
+        },
+      })
         .get('/projects/1234')
         .reply(200, getProjectResponse);
       const project = await ProjectService.getProject(1234);
@@ -77,15 +56,15 @@ describe('ProjectService', () => {
     });
 
     it('should activate a project successfully', async() => {
-        const fakeHttp = nock(config.projectApi.url, {
-            reqheaders: {
-            authorization: 'Bearer faketoken',
-            },
-        })
+      const fakeHttp = nock(config.projectApi.url, {
+        reqheaders: {
+          authorization: 'Bearer faketoken',
+        },
+      })
         .patch('/projects/1234')
         .reply(200, getProjectResponse);
       const project = await ProjectService.updateProjectStatus(1234);
-      console.log(project, 'project')
+      console.log(project, 'project');
       expect(project).to.deep.equal(getProjectResponse);
       fakeHttp.done();
     });

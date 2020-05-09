@@ -2,22 +2,19 @@
  * Unit tests for ConsumerService
  */
 
-import _ from 'lodash';
 import ConsumerService from '../src/services/ConsumerService';
 import SalesforceService from '../src/services/SalesforceService';
 import IdentityService from '../src/services/IdentityService';
-import {UnprocessableError} from '../src/common/errors';
 import logger from '../src/common/logger';
 import './setup';
 
 describe('ConsumerService', () => {
-  const sfCampaignId = 'sf-camp-id';
   const leadId = 'fake-lead-id';
   const user = {
     firstName: 'john',
     lastName: 'doe',
     email: 'jd@example.com',
-    handle: 'jdoe'
+    handle: 'jdoe',
   };
   const sfAuth = {
     accessToken: 'fake-token',
@@ -28,19 +25,19 @@ describe('ConsumerService', () => {
   const project = {
     id: 1,
     details: {
-        appDefinition: {
-          budget: 10000,
-          budgetType: 'guess',
-          whenToStart: 'asap',
-          deadline: '1-2-months'
+      appDefinition: {
+        budget: 10000,
+        budgetType: 'guess',
+        whenToStart: 'asap',
+        deadline: '1-2-months',
+      },
+      utm: {
+        code: '123',
+        google: {
+          _gacid: '1234.5678',
+          _gclid: '5678.1234',
         },
-        utm: {
-            code: "123",
-            google: {
-              _gacid: "1234.5678",
-              _gclid: "5678.1234"
-            }
-        }
+      },
     },
     cancelReason: null,
     members: [
@@ -51,19 +48,19 @@ describe('ConsumerService', () => {
         isPrimary: true,
       },
     ],
-    createdBy: userId
+    createdBy: userId,
   };
   const projectUpdatePaylod = {
     original: {
       id: 1,
-      status: 'in_review'
+      status: 'in_review',
     },
     updated: {
       id: 1,
       status: 'active',
-      cancelReason: null
-    }
-  }
+      cancelReason: null,
+    },
+  };
   let sandbox;
   let getUserStub;
   let authenticateStub;
@@ -85,10 +82,10 @@ describe('ConsumerService', () => {
         Type__c: 'connect.project.created',
         Json__c: JSON.stringify({
           ...project,
-          createdByEmail : user.email,
+          createdByEmail: user.email,
           createdByFirstName: user.firstName,
-          createdByLastName: user.lastName
-        })
+          createdByLastName: user.lastName,
+        }),
       };
 
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
@@ -96,22 +93,23 @@ describe('ConsumerService', () => {
       await ConsumerService.processProjectCreated(logger, project);
       getUserStub.should.have.been.calledWith(userId);
       authenticateStub.should.have.been.called;
-      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
+      createObjectStub.should.have.been.calledWith(
+        'Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
 
     it('should NOT throw any error even if primary customer is not found', async() => {
       const projectWihoutMembers = {
         ...project,
-        members : []
+        members: [],
       };
       const expectedLead = {
         Type__c: 'connect.project.created',
         Json__c: JSON.stringify({
           ...projectWihoutMembers,
-          createdByEmail : user.email,
+          createdByEmail: user.email,
           createdByFirstName: user.firstName,
-          createdByLastName: user.lastName
-        })
+          createdByLastName: user.lastName,
+        }),
       };
 
       const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => leadId);
@@ -119,7 +117,8 @@ describe('ConsumerService', () => {
       await ConsumerService.processProjectCreated(logger, projectWihoutMembers);
       getUserStub.should.have.been.calledWith(userId);
       authenticateStub.should.have.been.called;
-      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
+      createObjectStub.should.have.been.calledWith(
+        'Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
 
     it('should rethrow Error from createObject if error is not duplicate', async() => {
@@ -137,23 +136,23 @@ describe('ConsumerService', () => {
 
   describe('processProjectUpdated', () => {
     it('should process project successfully', async() => {
-      const memberId = 'member-id';
       const expectedLead = {
         Type__c: 'connect.project.updated',
         Json__c: JSON.stringify({
           original: {
             ...projectUpdatePaylod.original,
-            createdByEmail : user.email,
+            createdByEmail: user.email,
             createdByFirstName: user.firstName,
-            createdByLastName: user.lastName
+            createdByLastName: user.lastName,
           },
-          updated: projectUpdatePaylod.updated
-        })
+          updated: projectUpdatePaylod.updated,
+        }),
       };
-      const createObjectStub = sandbox.stub(SalesforceService,'createObject', async() => {});
+      const createObjectStub = sandbox.stub(SalesforceService, 'createObject', async() => {});
 
       await ConsumerService.processProjectUpdated(logger, projectUpdatePaylod);
-      createObjectStub.should.have.been.calledWith('Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
+      createObjectStub.should.have.been.calledWith(
+        'Connect_Event__c', expectedLead, sfAuth.accessToken, sfAuth.instanceUrl);
     });
   });
 });

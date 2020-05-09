@@ -73,7 +73,8 @@ describe('IdentityService', () => {
   describe('authenticate', () => {
     it('should return token successfully', async() => {
       const fakeHttp = nock(config.identityService.url)
-        .post('/v3/authorizations', 'clientId=' + config.identityService.clientId + '&secret=' + encodeURIComponent(config.identityService.clientSecret))
+        .post('/v3/authorizations',
+        `clientId=${config.identityService.clientId}&secret=${encodeURIComponent(config.identityService.clientSecret)}`)
         .reply(200, authenticateResponse);
       const token = await IdentityService.authenticate();
       expect(token).to.equal('THEJWTTOKEN');
@@ -96,7 +97,8 @@ describe('IdentityService', () => {
     });
     it('should return a user and authenticate successfully', async() => {
       const fakeAuthHttp = nock(config.identityService.url)
-        .post('/v3/authorizations', 'clientId=' + config.identityService.clientId + '&secret=' + encodeURIComponent(config.identityService.clientSecret))
+        .post('/v3/authorizations',
+        `clientId=${config.identityService.clientId}&secret=${encodeURIComponent(config.identityService.clientSecret)}`)
         .reply(200, authenticateResponse);
       const fakeHttp = nock(config.identityService.url, {
         reqheaders: {

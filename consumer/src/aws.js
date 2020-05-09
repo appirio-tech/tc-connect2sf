@@ -4,7 +4,6 @@
 
 import AWS from 'aws-sdk';
 import config from 'config';
-import logger from './common/logger';
 
 AWS.config.apiVersions = {
   dynamodb: '2012-08-10',
