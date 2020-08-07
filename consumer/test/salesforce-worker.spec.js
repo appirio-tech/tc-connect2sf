@@ -8,7 +8,7 @@ import './setup';
 describe('salesforce-worker', () => {
   const sampleSalesforceEvent = {
     payload: {
-      Type__c: 'billingAccount.updated',
+      Type__c: 'billingAccount.update',
       Original__c: '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : false }',
       Updated__c: '{ "TC_Connect_Project_ID__c": 1234, "Active__c" : true }',
     },
