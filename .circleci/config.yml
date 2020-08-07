@@ -94,7 +94,7 @@ workflows:
             - test
           filters:
             branches:
-              only: ['dev', 'feature/kafka_event_listener']
+              only: ['dev', 'feature/updateing_billing_account_from_sfdc']
       - deployProd:
           context : org-global
           requires:
