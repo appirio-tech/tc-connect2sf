@@ -89,7 +89,7 @@ function start() {
     debug('CLient created...');
     client.setHeader('Authorization', `OAuth ${accessToken}`);
     const sub = client.subscribe('/event/Connect_SFDC__e', consumeMessage);
-    debug(`Subscribed ${sub}`);
+    debug(`Subscribed ${JSON.stringify(sub)}`);
   });
 }
 
