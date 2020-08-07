@@ -28,24 +28,25 @@ export function consumeMessage(message) {
   const eventType = _.get(payload, 'Type__c');
   const original = JSON.parse(_.get(payload, 'Original__c'));
   const updated = JSON.parse(_.get(payload, 'Updated__c'));
-  let statusToBe = null;
-  let statusChangeReason = null;
-  if (eventType === 'billingAccount.updated') {
+  const delta = {}
+  if (eventType === 'billingAccount.update') {
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
     debug(`${oldStatus} === ${updatedStatus}`);
+    // billing account activated
     if (oldStatus !== updatedStatus && updatedStatus === true) {
-      statusToBe = 'active';
+      delta.status = 'active';
+      delta.billingAccountId = parseInt(_.get(updated, 'TopCoder_Billing_Account_Id__c', 0), 10);
     }
   } else if (eventType === 'opportunity.won') {
     // TODO
   } else if (eventType === 'opportunity.lost') {
     // Cancel connect project
-    statusToBe = 'cancelled';
-    statusChangeReason = _.get(updated, 'Loss_Description__c', 'Opportunity Lost');
+    delta.status = 'cancelled';
+    delta.cancelReason = _.get(updated, 'Loss_Description__c', 'Opportunity Lost');
   } else if (eventType === 'opportunity.create') {
     // Move to reviewed status
-    statusToBe = 'reviewed';
+    delta.status = 'reviewed';
   } else if (eventType === 'lead.status.update') {
     const oldStatus = _.get(original, 'Status');
     const updatedStatus = _.get(updated, 'Status');
@@ -54,18 +55,18 @@ export function consumeMessage(message) {
         const nurtureReason = _.get(updated, 'Nurture_Reason__c');
         if (nurtureReason === 'BDR Rejected') {
           // Move to paused status
-          statusToBe = 'paused';
+          delta.status = 'paused';
         }
       } else if (updatedStatus === 'Disqualified') {
         // Cancel the project
-        statusToBe = 'cancelled';
-        statusChangeReason = _.get(updated, 'Disqualified_Reason__c', 'Lead Disqualified');
+        delta.status = 'cancelled';
+        delta.cancelReason = _.get(updated, 'Disqualified_Reason__c', 'Lead Disqualified');
       } else if (updatedStatus === 'Qualified') {
         // Move to reviewed status
-        statusToBe = 'reviewed';
+        delta.status = 'reviewed';
       } else if (updatedStatus === 'Working') {
         // Move to in_review status
-        statusToBe = 'in_review';
+        delta.status = 'in_review';
       }
     }
   }
@@ -73,10 +74,10 @@ export function consumeMessage(message) {
   if (!projectId) {
     projectId = _.get(updated, 'TC_Connect_Project_Id__c');
   }
-  debug(`Status to be updated: ${statusToBe} for project with id ${projectId}`);
-  if (statusToBe && projectId) {
-    debug(`Updating status to ${statusToBe} project with id ${projectId}`);
-    ProjectService.updateProjectStatus(projectId, statusToBe, statusChangeReason);
+  debug(`Delta to be updated: ${JSON.stringify(delta)} for project with id ${projectId}`);
+  if (delta.status && projectId) {
+    debug(`Updating project with delta ${delta} with id ${projectId}`);
+    ProjectService.updateProject(projectId, delta);
   }
 }
 
@@ -88,7 +89,7 @@ function start() {
     debug('CLient created...');
     client.setHeader('Authorization', `OAuth ${accessToken}`);
     const sub = client.subscribe('/event/Connect_SFDC__e', consumeMessage);
-    debug('Subscribed', sub);
+    debug('Subscribed ', sub);
   });
 }
 

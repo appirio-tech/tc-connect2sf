@@ -63,8 +63,7 @@ describe('ProjectService', () => {
       })
         .patch('/projects/1234')
         .reply(200, getProjectResponse);
-      const project = await ProjectService.updateProjectStatus(1234);
-      console.log(project, 'project');
+      const project = await ProjectService.updateProject(1234);
       expect(project).to.deep.equal(getProjectResponse);
       fakeHttp.done();
     });
