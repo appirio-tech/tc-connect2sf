@@ -52,7 +52,7 @@ const getProject = (projectId) => {
  *
  * @return {Promise}          promise resolved to the updated project
  */
-const updateProject = (projectId, updatedProject) => {
+const updateProject = (projectId, delta) => {
   debug(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
   debug(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
   return M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
@@ -61,14 +61,14 @@ const updateProject = (projectId, updatedProject) => {
         .patch(`${config.projectApi.url}/projects/${projectId}`)
         .set('accept', 'application/json')
         .set('Authorization', `Bearer ${token}`)
-        .send(updatedProject)
+        .send(delta)
         .then((res) => {
           if (res.status !== 200) {
             throw new Error(`Failed to update project with id: ${projectId}`);
           }
           const project = _.get(res, 'body');
           if (project) {
-            debug(`Successfully updated the project ${projectId} with delat ${updatedProject}`);
+            debug(`Successfully updated the project ${projectId} with delta ${JSON.stringify(delta)}`);
           }
           return project;
         })
