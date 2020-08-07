@@ -52,13 +52,9 @@ const getProject = (projectId) => {
  *
  * @return {Promise}          promise resolved to the updated project
  */
-const updateProjectStatus = (projectId, status = 'active', changeReason) => {
+const updateProject = (projectId, updatedProject) => {
   debug(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
   debug(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
-  const updatedProject = { status };
-  if (changeReason) {
-    updatedProject.cancelReason = changeReason;
-  }
   return M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
     .then((token) => (
       request
@@ -72,7 +68,7 @@ const updateProjectStatus = (projectId, status = 'active', changeReason) => {
           }
           const project = _.get(res, 'body');
           if (project) {
-            debug(`Successfully updated the project ${projectId} with status ${status}`);
+            debug(`Successfully updated the project ${projectId} with delat ${updatedProject}`);
           }
           return project;
         })
@@ -93,5 +89,5 @@ const updateProjectStatus = (projectId, status = 'active', changeReason) => {
 
 module.exports = {
   getProject,
-  updateProjectStatus,
+  updateProject,
 };
