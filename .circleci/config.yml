@@ -94,7 +94,7 @@ workflows:
             - test
           filters:
             branches:
-              only: ['dev', 'feature/updateing_billing_account_from_sfdc']
+              only: ['dev']
       - deployProd:
           context : org-global
           requires:
