@@ -29,7 +29,7 @@ export function consumeMessage(message) {
   const original = JSON.parse(_.get(payload, 'Original__c'));
   const updated = JSON.parse(_.get(payload, 'Updated__c'));
   const delta = {}
-  if (eventType === 'billingAccount.updated') {
+  if (eventType === 'billingAccount.update') {
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
     debug(`${oldStatus} === ${updatedStatus}`);
@@ -74,8 +74,8 @@ export function consumeMessage(message) {
   if (!projectId) {
     projectId = _.get(updated, 'TC_Connect_Project_Id__c');
   }
-  debug(`Delta to be updated: ${delta} for project with id ${projectId}`);
-  if (delta && delta.status && projectId) {
+  debug(`Delta to be updated: ${JSON.stringify(delta)} for project with id ${projectId}`);
+  if (delta.status && projectId) {
     debug(`Updating project with delta ${delta} with id ${projectId}`);
     ProjectService.updateProject(projectId, delta);
   }
@@ -89,7 +89,7 @@ function start() {
     debug('CLient created...');
     client.setHeader('Authorization', `OAuth ${accessToken}`);
     const sub = client.subscribe('/event/Connect_SFDC__e', consumeMessage);
-    debug('Subscribed', sub);
+    debug(`Subscribed ${sub}`);
   });
 }
 
