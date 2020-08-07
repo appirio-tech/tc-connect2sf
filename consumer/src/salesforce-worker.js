@@ -28,7 +28,7 @@ export function consumeMessage(message) {
   const eventType = _.get(payload, 'Type__c');
   const original = JSON.parse(_.get(payload, 'Original__c'));
   const updated = JSON.parse(_.get(payload, 'Updated__c'));
-  const delta = { status: statusToBe, cancelReason: statusChangeReason }
+  const delta = {}
   if (eventType === 'billingAccount.updated') {
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
@@ -74,7 +74,7 @@ export function consumeMessage(message) {
   if (!projectId) {
     projectId = _.get(updated, 'TC_Connect_Project_Id__c');
   }
-  debug(`Status to be updated: ${statusToBe} for project with id ${projectId}`);
+  debug(`Delta to be updated: ${delta} for project with id ${projectId}`);
   if (delta && delta.status && projectId) {
     debug(`Updating project with delta ${delta} with id ${projectId}`);
     ProjectService.updateProject(projectId, delta);
