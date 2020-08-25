@@ -12,8 +12,8 @@ import {logAndValidate, log} from '../common/decorators';
 const loginBaseUrl = config.salesforce.audience || 'https://login.salesforce.com';
 const request = superagentPromise(superagent, Promise);
 // we are using dummy private key to fail safe when key is not provided in env
-let privateKey = config.SALESFORCE_CLIENT_KEY || 'privateKey'
-privateKey = privateKey.replace(/\\n/g, "\n")
+let privateKey = config.SALESFORCE_CLIENT_KEY || 'privateKey';
+privateKey = privateKey.replace(/\\n/g, '\n');
 
 const createObjectSchema = {
   type: Joi.string().required(),
@@ -100,7 +100,7 @@ class SalesforceService {
    * @param {String} instanceUrl the salesforce instance url
    * @returns {String} the updated object id
    */
-  @logAndValidate(['id','type', 'params', 'accessToken', 'instanceUrl'], updateObjectSchema)
+  @logAndValidate(['id', 'type', 'params', 'accessToken', 'instanceUrl'], updateObjectSchema)
   updateObject(id, type, params, accessToken, instanceUrl) {
     return request
       .patch(`${instanceUrl}/services/data/v37.0/sobjects/${type}/${id}`)

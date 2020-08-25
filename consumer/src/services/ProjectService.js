@@ -30,19 +30,20 @@ const getProject = (projectId) => {
           }
           const project = _.get(res, 'body');
           return project;
-        }).catch((err) => {
+        })
+        .catch((err) => {
           const errorDetails = _.get(err, 'response.body');
           throw new Error(
-            `Failed to get project details of project id: ${projectId}.` +
-            (errorDetails ? ' Server response: ' + errorDetails : '')
+            `Failed to get project details of project id: ${projectId}.${
+            errorDetails ? ` Server response: ${errorDetails}` : ''}`
           );
         })
     ))
     .catch((err) => {
-      err.message = 'Error generating m2m token: ' + err.message;
+      err.message = `Error generating m2m token: ${err.message}`;
       throw err;
-    })
-  };
+    });
+};
 
 /**
  * Activates the given project
@@ -51,45 +52,42 @@ const getProject = (projectId) => {
  *
  * @return {Promise}          promise resolved to the updated project
  */
-const updateProjectStatus = (projectId, status='active', changeReason) => {
+const updateProject = (projectId, delta) => {
   debug(`AUTH0_CLIENT_ID: ${config.AUTH0_CLIENT_ID.substring(0, 5)}`);
   debug(`AUTH0_CLIENT_SECRET: ${config.AUTH0_CLIENT_SECRET.substring(0, 5)}`);
-  const updatedProject = { status };
-  if (changeReason) {
-    updatedProject.cancelReason = changeReason;
-  }
   return M2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
     .then((token) => (
       request
         .patch(`${config.projectApi.url}/projects/${projectId}`)
         .set('accept', 'application/json')
         .set('Authorization', `Bearer ${token}`)
-        .send(updatedProject)
+        .send(delta)
         .then((res) => {
           if (res.status !== 200) {
             throw new Error(`Failed to update project with id: ${projectId}`);
           }
           const project = _.get(res, 'body');
           if (project) {
-            debug(`Successfully updated the project ${projectId} with status ${status}`);
+            debug(`Successfully updated the project ${projectId} with delta ${JSON.stringify(delta)}`);
           }
           return project;
-        }).catch((err) => {
+        })
+        .catch((err) => {
           debug(err);
           const errorDetails = _.get(err, 'response.body');
           throw new Error(
-            `Failed to update project with id: ${projectId}.` +
-            (errorDetails ? ' Server response: ' + errorDetails : '')
+            `Failed to update project with id: ${projectId}.${
+            errorDetails ? ` Server response: ${errorDetails}` : ''}`
           );
         })
     ))
     .catch((err) => {
-      err.message = 'Error generating m2m token: ' + err.message;
+      err.message = `Error generating m2m token: ${err.message}`;
       throw err;
-    })
-  };
+    });
+};
 
 module.exports = {
   getProject,
-  updateProjectStatus
+  updateProject,
 };

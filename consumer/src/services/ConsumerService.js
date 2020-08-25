@@ -3,7 +3,6 @@
  */
 
 import Joi from 'joi';
-import _ from 'lodash';
 import {log, validate} from '../common/decorators';
 import IdentityService from './IdentityService';
 import SalesforceService from './SalesforceService';
@@ -12,21 +11,21 @@ import {UnprocessableError} from '../common/errors';
 const duplicateRecordRegex = /TC_Connect_Project_Id__c duplicates value on record/;
 
 const projectCreatedSchema = Joi.object().keys({
-    logger: Joi.object(),
-    project: Joi.object().keys({
-      id: Joi.number().required(),
-      members: Joi.array().required()
-    }).unknown(true)
+  logger: Joi.object(),
+  project: Joi.object().keys({
+    id: Joi.number().required(),
+    members: Joi.array().required(),
+  }).unknown(true),
 }).unknown(true);
 
 const projectUpdatedSchema = Joi.object().keys({
-    logger: Joi.object(),
-    projectEvent: Joi.object().keys({
-      original: Joi.object().keys({
-        id: Joi.number().required()
-      }).required().unknown(true),
-      updated: Joi.object().required()
-    }).required()
+  logger: Joi.object(),
+  projectEvent: Joi.object().keys({
+    original: Joi.object().keys({
+      id: Joi.number().required(),
+    }).required().unknown(true),
+    updated: Joi.object().required(),
+  }).required(),
 }).unknown(true);
 
 
@@ -37,7 +36,7 @@ class ConsumerService {
    * @param {Object} projectEvent the project event
    */
   @log(['project'])
-  @validate(['logger','project'], projectCreatedSchema)
+  @validate(['logger', 'project'], projectCreatedSchema)
   processProjectCreated(logger, project) {
     logger.info(`Project Created By: ${project.createdBy}`);
     return Promise.all([
@@ -54,7 +53,7 @@ class ConsumerService {
         Json__c: JSON.stringify(project),
       };
       return SalesforceService.createObject('Connect_Event__c', leadData, accessToken, instanceUrl)
-      .catch( (e) => {
+      .catch((e) => {
         if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
           throw new UnprocessableError(`Record existing for project ${project.id}`);
         }
@@ -78,8 +77,8 @@ class ConsumerService {
   processProjectUpdated(logger, projectEvent) {
     delete projectEvent.original.template;
     delete projectEvent.updated.template;
-    var project = projectEvent.original;
-    var projectUpdated = projectEvent.updated;
+    const project = projectEvent.original;
+    const projectUpdated = projectEvent.updated;
 
     return Promise.all([
       IdentityService.getUser(project.createdBy),
@@ -96,12 +95,12 @@ class ConsumerService {
         Json__c: JSON.stringify(projectEvent),
       };
       return SalesforceService.createObject('Connect_Event__c', leadData, accessToken, instanceUrl)
-      .catch( (e) => {
+      .catch((e) => {
         if (e.response && e.response.text && duplicateRecordRegex.test(e.response.text)) {
           throw new UnprocessableError(`Record existing for project ${projectUpdated.id}`);
         }
         throw e;
-      });      
+      });
     });
   }
 }

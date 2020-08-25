@@ -1,3 +1,52 @@
 {
-    "scheduledWorkerSchedule": "*/5 * * * *"
+  "scheduledWorkerSchedule": "*/5 * * * *",
+  "KAFKA_CONSUMER_RULESETS": {
+    "member.action.profile.trait.create": [
+      {
+        "handleUserUpdated": {
+        }
+
+      }
+    ],
+    "member.action.profile.trait.update": [
+      {
+        "handleUserUpdated": {
+        }
+
+      }
+    ],
+    "identity.notification.create": [
+      {
+        "handleUserCreated": {
+        }
+
+      }
+    ],
+    "project.action.create": [
+      {
+        "handleProjectCreated": {
+          "resource": "project"
+        }
+      },
+      {
+        "handleProjectMemberAdded": {
+          "resource": "project.member"
+        }
+      }
+    ],
+    "project.action.delete": [
+      {
+        "handleProjectMemberRemoved": {
+          "resource": "project.member"
+        }
+      }
+    ],
+    "project.action.update": [
+      {
+        "handleProjectUpdated": {
+          "resource": "project"
+        }
+      }
+    ]
+  }
 }

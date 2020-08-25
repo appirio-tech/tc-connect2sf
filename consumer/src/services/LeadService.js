@@ -33,22 +33,20 @@ class LeadService {
   @logAndValidate(['user'], postLeadSchema)
   postLead(user) { // eslint-disable-line no-unused-vars
     console.log(user, 'user');
-    let leadId = 0;
+    const leadId = 0;
     return Promise.all([
       SalesforceService.authenticate(),
     ]).then((responses) => {
       const { accessToken, instanceUrl } = responses[0];
       const lead = {
         Type__c: 'connect.user.registered',
-        Json__c: JSON.stringify(user)
+        Json__c: JSON.stringify(user),
       };
       return SalesforceService.createObject('Connect_Event__c', lead, accessToken, instanceUrl)
-      .catch( (e) => {
+      .catch((e) => {
         throw e;
-      })
-    }).then(() => {
-      return {success: true, leadId };
-    }).catch((error) => {
+      });
+    }).then(() => ({success: true, leadId })).catch((error) => {
       throw error;
     });
   }
