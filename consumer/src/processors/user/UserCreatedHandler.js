@@ -27,7 +27,7 @@ const userCreatedSchema = Joi.object().keys({
 const handle = (logger, message, ruleSets) => co(function* () {
   const payload = message.payload;
   const validatedPayload = userCreatedSchema.validate(payload);
-  logger.info('validatedPayload=>' + validatedPayload);
+  logger.info('validatedPayload=>' + JSON.stringify(validatedPayload));
   if (!validatedPayload.error) {
     SalesforceEventService.postEvent(logger, message);
   }
