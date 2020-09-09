@@ -64,20 +64,20 @@ export function log(params = [], {removeOutput} = {}) {
     const logExit = (output) => {
       logDebug(`EXIT ${methodName}`);
       if (output !== null && output !== undefined) {
-        logDebug('output');
+        let outputLog = '';
         if (removeOutput) {
-          logDebug('<removed>');
+          outputLog = '<removed>';
         } else {
-          logDebug(util.inspect(_sanitizeObject(output)));
+          outputLog = util.inspect(_sanitizeObject(output));
         }
+        logDebug('output: ' + outputLog);
       }
       return output;
     };
     descriptor.value = function logDecorator(...args) {
       logDebug(`ENTER ${methodName}`);
       if (params.length) {
-        logDebug('input arguments');
-        logDebug(util.inspect(_sanitizeObject(_combineObject(params, args))));
+        logDebug('input arguments: ' + util.inspect(_sanitizeObject(_combineObject(params, args))));
       }
       let result;
 

@@ -15,7 +15,7 @@ import SalesforceEventService from '../../services/SalesforceEventService';
  */
 const handle = (logger, message, ruleSets) => co(function* () {
   if (message.payload.resource === _.get(ruleSets, 'resource')) {
-    logger.info(message);
+    logger.info('Message=>' + message);
     SalesforceEventService.postEvent(logger, message);
   }
   return {};
