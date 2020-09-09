@@ -25,7 +25,7 @@ const userUpdatedSchema = Joi.object().keys({
 const handle = (logger, message, ruleSets) => co(function* () {
   const payload = message.payload;
   const validatedPayload = userUpdatedSchema.validate(payload);
-  logger.info('validatedPayload=> ' + validatedPayload);
+  logger.info('validatedPayload=> ' + JSON.stringify(validatedPayload));
   if (!validatedPayload.error) {
     const traitId = validatedPayload.value.traitId;
     // Send to salesforce only if it is one of selected traits
