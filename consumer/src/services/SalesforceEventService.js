@@ -17,7 +17,6 @@ class SalesforceEventService {
    */
   @log(['event'])
   postEvent(logger, event) { // eslint-disable-line no-unused-vars
-    logger.debug(event, 'event');
     const promises = [];
     if (event.payload.createdBy) {
         promises.push(IdentityService.getUser(event.payload.createdBy))
