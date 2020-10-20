@@ -29,12 +29,20 @@ export function consumeMessage(message) {
   const original = JSON.parse(_.get(payload, 'Original__c'));
   const updated = JSON.parse(_.get(payload, 'Updated__c'));
   const delta = {}
+  let oldProjectId = _.get(original, 'TC_Connect_Project_ID__c')
+  if (!oldProjectId) {
+    oldProjectId = _.get(original, 'TC_Connect_Project_Id__c');
+  }
+  let projectId = _.get(updated, 'TC_Connect_Project_ID__c');
+  if (!projectId) {
+    projectId = _.get(updated, 'TC_Connect_Project_Id__c');
+  }
   if (eventType === 'billingAccount.update') {
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
     debug(`${oldStatus} === ${updatedStatus}`);
-    // billing account activated
-    if (oldStatus !== updatedStatus && updatedStatus === true) {
+    // billing account activated or project id set to an active billing account
+    if ((oldStatus !== updatedStatus || oldProjectId !== projectId) && updatedStatus === true) {
       delta.status = 'active';
       delta.billingAccountId = parseInt(_.get(updated, 'TopCoder_Billing_Account_Id__c', 0), 10);
     }
@@ -69,10 +77,6 @@ export function consumeMessage(message) {
         delta.status = 'in_review';
       }
     }
-  }
-  let projectId = _.get(updated, 'TC_Connect_Project_ID__c');
-  if (!projectId) {
-    projectId = _.get(updated, 'TC_Connect_Project_Id__c');
   }
   debug(`Delta to be updated: ${JSON.stringify(delta)} for project with id ${projectId}`);
   if (delta.status && projectId) {
