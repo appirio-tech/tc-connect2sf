@@ -40,11 +40,13 @@ export function consumeMessage(message) {
   if (eventType === 'billingAccount.update') {
     const oldStatus = _.get(original, 'Active__c');
     const updatedStatus = _.get(updated, 'Active__c');
-    debug(`${oldStatus} === ${updatedStatus}`);
+    const oldBillingAccountId = _.get(original, 'TopCoder_Billing_Account_Id__c', 0)
+    const newBillingAccountId = _.get(updated, 'TopCoder_Billing_Account_Id__c', 0)
+    debug(`${oldStatus} !== ${updatedStatus}, ${oldProjectId} !== ${projectId}, ${oldBillingAccountId} !== ${newBillingAccountId}`);
     // billing account activated or project id set to an active billing account
-    if ((oldStatus !== updatedStatus || oldProjectId !== projectId) && updatedStatus === true) {
+    if ((oldStatus !== updatedStatus || oldProjectId !== projectId || oldBillingAccountId !== newBillingAccountId) && updatedStatus === true) {
       delta.status = 'active';
-      delta.billingAccountId = parseInt(_.get(updated, 'TopCoder_Billing_Account_Id__c', 0), 10);
+      delta.billingAccountId = parseInt(newBillingAccountId, 10);
     }
   } else if (eventType === 'opportunity.won') {
     // TODO
