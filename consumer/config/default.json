@@ -51,14 +51,12 @@
     "taas.resourcebooking.create": [
       {
         "handleTaaSResourceBookingCreated": {
-          "resource": "TaaSResourceBooking"
         }
       }
     ],
     "taas.resourcebooking.update": [
       {
         "handleTaaSResourceBookingUpdated": {
-          "resource": "TaaSResourceBooking"
         }
       }
     ]
