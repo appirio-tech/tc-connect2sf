@@ -15,7 +15,14 @@ import SalesforceEventService from '../../services/SalesforceEventService';
  */
 const handle = (logger, message, ruleSets) => co(function* () {
   logger.info(message);
-  SalesforceEventService.postEvent(logger, message);
+
+  // we cannot pass `createdBy` because it hold V5 User UUID not V3 User numeric id
+  // as a results when we `postEvent` we would try to populate user details which would fail
+  // see https://github.com/appirio-tech/tc-connect2sf/issues/81 for details
+  const cleanMessage = _.omit(message, 'payload.createdBy');
+
+  logger.info('message to send', cleanMessage);
+  SalesforceEventService.postEvent(logger, cleanMessage);
   return {};
 });
 
