@@ -1,22 +1,26 @@
 version: 2
-python_env: &python_env
+python_env:
+  &python_env
   docker:
     - image: circleci/python:2.7-stretch-browsers
-    
-install_awscli: &install_awscli
+
+install_awscli:
+  &install_awscli
   name: "Install awscli"
   command: |
     sudo pip install awscli --upgrade
-install_deploysuite: &install_deploysuite
-          name: Installation of install_deploysuite.
-          command: |
-            git clone --branch v1.4.2 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
-            cp ./../buildscript/master_deploy.sh .
-            cp ./../buildscript/buildenv.sh .
-            cp ./../buildscript/awsconfiguration.sh .
-            
+install_deploysuite:
+  &install_deploysuite
+  name: Installation of install_deploysuite.
+  command: |
+    git clone --branch v1.4.2 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
+    cp ./../buildscript/master_deploy.sh .
+    cp ./../buildscript/buildenv.sh .
+    cp ./../buildscript/awsconfiguration.sh .
+
 # Instructions of deployment
-deploy_steps: &deploy_steps
+deploy_steps:
+  &deploy_steps
   - checkout
   - attach_workspace:
       at: ./workspace
@@ -25,7 +29,7 @@ deploy_steps: &deploy_steps
   - setup_remote_docker
   - run: cd consumer && docker build -t tc-connect2sf:latest .
   - deploy:
-      name: "Running Masterscript -  deploy tc-connect2sf " 
+      name: "Running Masterscript -  deploy tc-connect2sf "
       command: |
         # cd consumer
         ./awsconfiguration.sh $DEPLOY_ENV  
@@ -45,7 +49,7 @@ deploy_steps: &deploy_steps
         ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-salesforce-consumers-deployvar
         source buildenvvar
         ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf
-        
+
 jobs:
   test:
     docker:
@@ -68,7 +72,7 @@ jobs:
           root: .
           paths:
             - consumer/node_modules
-            
+
   deployProd:
     <<: *python_env
     environment:
@@ -81,24 +85,26 @@ jobs:
     environment:
       DEPLOY_ENV: "DEV"
       VAR_ENV: "dev"
-    steps: *deploy_steps 
-    
+    steps: *deploy_steps
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
+
 workflows:
   version: 2
   build:
     jobs:
       - test
       - deployDev:
-          context : org-global
+          context: org-global
           requires:
             - test
           filters:
             branches:
-              only: ['dev']
+              only: [ 'dev' ]
       - deployProd:
-          context : org-global
+          context: org-global
           requires:
             - test
           filters:
             branches:
-              only: ['master']
+              only: [ 'master' ]
