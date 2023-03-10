@@ -10,7 +10,7 @@ install_awscli: &install_awscli
 install_deploysuite: &install_deploysuite
           name: Installation of install_deploysuite.
           command: |
-            git clone --branch v1.4.2 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
+            git clone --branch v1.4.14 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
             cp ./../buildscript/master_deploy.sh .
             cp ./../buildscript/buildenv.sh .
             cp ./../buildscript/awsconfiguration.sh .
@@ -82,6 +82,13 @@ jobs:
       DEPLOY_ENV: "DEV"
       VAR_ENV: "dev"
     steps: *deploy_steps 
+
+  deployQa:
+    <<: *python_env
+    environment:
+      DEPLOY_ENV: "QA"
+      VAR_ENV: "qa"
+    steps: *deploy_steps     
     
 workflows:
   version: 2
@@ -95,6 +102,13 @@ workflows:
           filters:
             branches:
               only: ['dev']
+      - deployQa:
+          context : org-global
+          requires:
+            - test
+          filters:
+            branches:
+              only: ['qa']              
       - deployProd:
           context : org-global
           requires:
