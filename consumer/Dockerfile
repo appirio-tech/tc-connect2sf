@@ -15,6 +15,8 @@ WORKDIR /usr/src/app
 # Bundle app source
 COPY . /usr/src/app
 # Install app dependencies
+RUN npm config set unsafe-perm true
+RUN git config --global url."https://git@".insteadOf git://
 RUN npm install
 
 RUN npm install -g forever babel-cli
