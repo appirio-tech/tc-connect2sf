@@ -1,4 +1,4 @@
-FROM node:6.9.4
+FROM node:8.11.3
 LABEL version="1.0"
 LABEL description="Topcoder Salesforce Integration"
 
@@ -15,9 +15,9 @@ WORKDIR /usr/src/app
 # Bundle app source
 COPY . /usr/src/app
 # Install app dependencies
-RUN npm config set unsafe-perm true
+# RUN npm config set unsafe-perm true
 # RUN git config --global url."https://git@".insteadOf git://
-RUN npm cache clear
+# RUN npm cache clear
 RUN npm install
 
 RUN npm install -g forever babel-cli
