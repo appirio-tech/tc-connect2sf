@@ -2,7 +2,7 @@ FROM node:6.9.4
 LABEL version="1.0"
 LABEL description="Topcoder Salesforce Integration"
 
-RUN sed -i '/jessie-updates/d' /etc/apt/sources.list
+RUN sed -i '/jammy-updates/d' /etc/apt/sources.list
 RUN sed -i 's/security.debian/archive.debian/' /etc/apt/sources.list
 RUN sed -i 's/deb.debian/archive.debian/' /etc/apt/sources.list
 
