@@ -17,4 +17,4 @@ RUN yarn global add forever babel-cli
 
 EXPOSE 3000
 
-ENTRYPOINT ["yarn","run"]
+ENTRYPOINT ["npm","run"]
