@@ -47,6 +47,18 @@
           "resource": "project"
         }
       }
+    ],
+    "taas.resourcebooking.create": [
+      {
+        "handleTaaSResourceBookingCreated": {
+        }
+      }
+    ],
+    "taas.resourcebooking.update": [
+      {
+        "handleTaaSResourceBookingUpdated": {
+        }
+      }
     ]
   }
 }
