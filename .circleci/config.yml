@@ -59,7 +59,7 @@ jobs:
       - checkout
       - restore_cache:
           key: test-node-modules-{{ checksum "consumer/package.json" }}
-      - run: cd consumer && npm install
+      - run: cd consumer && yarn install
       - save_cache:
           key: test-node-modules-{{ checksum "consumer/package.json" }}
           paths:

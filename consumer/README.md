@@ -128,11 +128,11 @@ Your aws region, key id and secret must match settings from `config` and `creden
 ## Starting
 
 Install dependencies:  
-`npm install`
+`yarn install`
 
 
 Prod mode:  
-`npm start`
+`yarn start`
 
 It's recommenced to use tools like forever or pm2.  
 App will exit if there is any connection error to RabbitMQ.  
@@ -140,15 +140,15 @@ App will exit if there is any connection error to RabbitMQ.
 See https://www.npmjs.com/package/forever  
 Example: 
 ```
-forever start -c "npm start" --uid "consumer"  .
+forever start -c "yarn start" --uid "consumer"  .
 ```
 
 See https://www.npmjs.com/package/pm2  
 Example: 
 ```
-pm2 start npm  --name consumer -- start
+pm2 start yarn  --name consumer -- start
 ```
-it will run a command `npm start` and set name to process `consumer`
+it will run a command `yarn start` and set name to process `consumer`
 
 
 Dev/local mode (auto reload + debug):  
