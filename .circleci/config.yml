@@ -52,7 +52,7 @@ deploy_steps: &deploy_steps
 jobs:
   test:
     docker:
-      - image: circleci/node:14.21.3
+      - image: cimg/node:14.20
     environment:
       LOG_LEVEL: debug
     steps:
