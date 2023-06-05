@@ -7,9 +7,6 @@ LABEL description="Topcoder Salesforce Integration"
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-# Install yarn
-RUN npm install -g yarn
-
 # Bundle app source
 COPY . /usr/src/app
 

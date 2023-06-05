@@ -12,9 +12,6 @@ COPY .babelrc .
 COPY .eslintignore .
 COPY .eslintrc .
 
-# Install Yarn
-RUN npm install -g yarn
-
 # Install dependencies
 RUN yarn install
 
