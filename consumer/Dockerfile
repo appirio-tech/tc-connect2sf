@@ -1,4 +1,4 @@
-FROM node:6.9.4
+FROM node:12.22.12
 LABEL version="1.0"
 LABEL description="Topcoder Salesforce Integration"
 
