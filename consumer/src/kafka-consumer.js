@@ -22,9 +22,10 @@ function startKafkaConsumer() {
     groupId: config.kafka.KAFKA_GROUP_ID,
     connectionString: config.kafka.KAFKA_URL,
   };
-  const cert = config.kafka.KAFKA_CLIENT_CERT.replace(/\\n/g, '\n');
-  const key = config.kafka.KAFKA_CLIENT_CERT_KEY.replace(/\\n/g, '\n');
+  
   if (config.kafka.KAFKA_CLIENT_CERT && config.kafka.KAFKA_CLIENT_CERT_KEY) {
+    const cert = config.kafka.KAFKA_CLIENT_CERT.replace(/\\n/g, '\n');
+    const key = config.kafka.KAFKA_CLIENT_CERT_KEY.replace(/\\n/g, '\n');
     options.ssl = {
       cert,
       key,
