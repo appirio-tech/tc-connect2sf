@@ -2,9 +2,6 @@ FROM node:6.9.4
 LABEL version="1.0"
 LABEL description="Topcoder Salesforce Integration"
 
-RUN apt-get update && \
-    apt-get upgrade -y
-
 #RUN apt-get install cron -y
 
 
