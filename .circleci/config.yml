@@ -32,19 +32,19 @@ deploy_steps: &deploy_steps
         source awsenvconf
         ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-service-deployvar
         source buildenvvar
-        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf
+        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf -p FARGATE
 
         echo "======= Running Masterscript - deploy tc-connect2sf-consumers ==========="
         if [ -e ${VAR_ENV}-tc-connect2sf-service-appvar.json ]; then  sudo rm -vf ${VAR_ENV}-tc-connect2sf-service-appvar.json; fi
         ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-consumers-deployvar
         source buildenvvar
-        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf
+        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf -p FARGATE
 
         echo "======= Running Masterscript - deploy tc-connect2sf-salesforce-consumers ==========="
         if [ -e ${VAR_ENV}-tc-connect2sf-service-appvar.json ]; then  sudo rm -vf ${VAR_ENV}-tc-connect2sf-service-appvar.json; fi
         ./buildenv.sh -e $DEPLOY_ENV -b ${VAR_ENV}-tc-connect2sf-salesforce-consumers-deployvar
         source buildenvvar
-        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf
+        ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${VAR_ENV}-global-appvar,${VAR_ENV}-tc-connect2sf-service-appvar -i tc-connect2sf -p FARGATE
         
 jobs:
   test:
